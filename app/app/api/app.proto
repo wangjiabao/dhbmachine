@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package api;
+
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "/api;api";
+option java_multiple_files = true;
+option java_package = "api";
+
+service App {
+	rpc EthAuthorize (EthAuthorizeRequest) returns (EthAuthorizeReply) {
+		option (google.api.http) = {
+			post: "/api/app_server/eth_authorize"
+			body: "send_body"
+		};
+	};
+
+	rpc deposit (DepositRequest) returns (DepositReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/deposit"
+		};
+	};
+}
+
+message EthAuthorizeRequest {
+	message SendBody{
+		string address = 1;
+		string code = 2;
+		string sign = 3;
+	}
+
+	SendBody send_body = 1;
+}
+
+message EthAuthorizeReply {
+	string token = 1;
+}
+
+
+message DepositRequest {
+}
+
+message DepositReply {
+}
