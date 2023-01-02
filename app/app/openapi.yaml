@@ -60,6 +60,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/admin_dhb/withdraw_list:
+        get:
+            tags:
+                - App
+            operationId: App_AdminWithdrawList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminWithdrawListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/app_server/deposit:
         get:
             tags:
@@ -304,6 +322,28 @@ components:
                 historyRecommend:
                     type: integer
                     format: int64
+        AdminWithdrawListReply:
+            type: object
+            properties:
+                withdraw:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AdminWithdrawListReply_List'
+        AdminWithdrawListReply_List:
+            type: object
+            properties:
+                address:
+                    type: string
+                createdAt:
+                    type: string
+                amount:
+                    type: string
+                relAmount:
+                    type: string
+                type:
+                    type: string
+                status:
+                    type: string
         DepositReply:
             type: object
             properties: {}

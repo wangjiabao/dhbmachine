@@ -104,6 +104,7 @@ type UserBalanceRepo interface {
 	GetUserBalanceByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserBalance, error)
 	Withdraw(ctx context.Context, userId int64, amount int64, coinType string) (*Withdraw, error)
 	GetWithdrawByUserId(ctx context.Context, userId int64) ([]*Withdraw, error)
+	GetWithdraws(ctx context.Context) ([]*Withdraw, error)
 }
 
 type UserRecommendRepo interface {
@@ -700,6 +701,55 @@ func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLoca
 			CurrentLevel: v.CurrentLevel,
 			Current:      fmt.Sprintf("%.2f", float64(v.Current)/float64(10000000000)),
 			CurrentMax:   fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(10000000000)),
+		})
+	}
+
+	return res, nil
+
+}
+
+func (uuc *UserUseCase) AdminWithdrawList(ctx context.Context, req *v1.AdminWithdrawListRequest) (*v1.AdminWithdrawListReply, error) {
+	var (
+		withdraws  []*Withdraw
+		userIds    []int64
+		userIdsMap map[int64]int64
+		users      map[int64]*User
+		err        error
+	)
+
+	res := &v1.AdminWithdrawListReply{
+		Withdraw: make([]*v1.AdminWithdrawListReply_List, 0),
+	}
+
+	withdraws, err = uuc.ubRepo.GetWithdraws(ctx)
+	if nil != err {
+		return res, err
+	}
+
+	userIdsMap = make(map[int64]int64, 0)
+	for _, vWithdraws := range withdraws {
+		userIdsMap[vWithdraws.UserId] = vWithdraws.UserId
+	}
+	for _, v := range userIdsMap {
+		userIds = append(userIds, v)
+	}
+
+	users, err = uuc.repo.GetUserByUserIds(ctx, userIds...)
+	if nil != err {
+		return res, nil
+	}
+
+	for _, v := range withdraws {
+		if _, ok := users[v.UserId]; !ok {
+			continue
+		}
+		res.Withdraw = append(res.Withdraw, &v1.AdminWithdrawListReply_List{
+			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
+			Amount:    fmt.Sprintf("%.2f", float64(v.Amount)/float64(10000000000)),
+			Status:    v.Status,
+			Type:      v.Type,
+			Address:   users[v.UserId].Address,
+			RelAmount: fmt.Sprintf("%.2f", float64(v.RelAmount)/float64(10000000000)),
 		})
 	}
 

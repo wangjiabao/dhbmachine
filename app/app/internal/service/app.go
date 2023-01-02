@@ -364,3 +364,7 @@ func (a *AppService) AdminUserList(ctx context.Context, req *v1.AdminUserListReq
 func (a *AppService) AdminLocationList(ctx context.Context, req *v1.AdminLocationListRequest) (*v1.AdminLocationListReply, error) {
 	return a.uuc.AdminLocationList(ctx, req)
 }
+
+func (a *AppService) AdminWithdrawList(ctx context.Context, req *v1.AdminWithdrawListRequest) (*v1.AdminWithdrawListReply, error) {
+	return a.uuc.AdminWithdrawList(ctx, req)
+}

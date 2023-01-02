@@ -33,6 +33,7 @@ type AppClient interface {
 	AdminRewardList(ctx context.Context, in *AdminRewardListRequest, opts ...grpc.CallOption) (*AdminRewardListReply, error)
 	AdminUserList(ctx context.Context, in *AdminUserListRequest, opts ...grpc.CallOption) (*AdminUserListReply, error)
 	AdminLocationList(ctx context.Context, in *AdminLocationListRequest, opts ...grpc.CallOption) (*AdminLocationListReply, error)
+	AdminWithdrawList(ctx context.Context, in *AdminWithdrawListRequest, opts ...grpc.CallOption) (*AdminWithdrawListReply, error)
 }
 
 type appClient struct {
@@ -142,6 +143,15 @@ func (c *appClient) AdminLocationList(ctx context.Context, in *AdminLocationList
 	return out, nil
 }
 
+func (c *appClient) AdminWithdrawList(ctx context.Context, in *AdminWithdrawListRequest, opts ...grpc.CallOption) (*AdminWithdrawListReply, error) {
+	out := new(AdminWithdrawListReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminWithdrawList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServer is the server API for App service.
 // All implementations must embed UnimplementedAppServer
 // for forward compatibility
@@ -157,6 +167,7 @@ type AppServer interface {
 	AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error)
 	AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error)
 	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
+	AdminWithdrawList(context.Context, *AdminWithdrawListRequest) (*AdminWithdrawListReply, error)
 	mustEmbedUnimplementedAppServer()
 }
 
@@ -196,6 +207,9 @@ func (UnimplementedAppServer) AdminUserList(context.Context, *AdminUserListReque
 }
 func (UnimplementedAppServer) AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminLocationList not implemented")
+}
+func (UnimplementedAppServer) AdminWithdrawList(context.Context, *AdminWithdrawListRequest) (*AdminWithdrawListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminWithdrawList not implemented")
 }
 func (UnimplementedAppServer) mustEmbedUnimplementedAppServer() {}
 
@@ -408,6 +422,24 @@ func _App_AdminLocationList_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _App_AdminWithdrawList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminWithdrawListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminWithdrawList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminWithdrawList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminWithdrawList(ctx, req.(*AdminWithdrawListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // App_ServiceDesc is the grpc.ServiceDesc for App service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -458,6 +490,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminLocationList",
 			Handler:    _App_AdminLocationList_Handler,
+		},
+		{
+			MethodName: "AdminWithdrawList",
+			Handler:    _App_AdminWithdrawList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

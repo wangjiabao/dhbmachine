@@ -583,6 +583,33 @@ func (ub *UserBalanceRepo) GetWithdrawByUserId(ctx context.Context, userId int64
 	return res, nil
 }
 
+// GetWithdraws .
+func (ub *UserBalanceRepo) GetWithdraws(ctx context.Context) ([]*biz.Withdraw, error) {
+	var withdraws []*Withdraw
+	res := make([]*biz.Withdraw, 0)
+	if err := ub.data.db.Table("withdraw").Find(&withdraws).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("WITHDRAW_NOT_FOUND", "withdraw not found")
+		}
+
+		return nil, errors.New(500, "WITHDRAW ERROR", err.Error())
+	}
+
+	for _, withdraw := range withdraws {
+		res = append(res, &biz.Withdraw{
+			ID:              withdraw.ID,
+			UserId:          withdraw.UserId,
+			Amount:          withdraw.Amount,
+			RelAmount:       withdraw.RelAmount,
+			BalanceRecordId: withdraw.BalanceRecordId,
+			Status:          withdraw.Status,
+			Type:            withdraw.Type,
+			CreatedAt:       withdraw.CreatedAt,
+		})
+	}
+	return res, nil
+}
+
 // RecommendReward .
 func (ub *UserBalanceRepo) RecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error) {
 	var err error

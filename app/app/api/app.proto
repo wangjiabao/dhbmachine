@@ -78,6 +78,12 @@ service App {
 			get: "/api/admin_dhb/location_list"
 		};
 	};
+
+	rpc AdminWithdrawList (AdminWithdrawListRequest) returns (AdminWithdrawListReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/withdraw_list"
+		};
+	};
 }
 
 message EthAuthorizeRequest {
@@ -238,5 +244,20 @@ message AdminLocationListReply {
 		int64 currentLevel = 6;
 		string current = 7;
 		string currentMax = 8;
+	}
+}
+
+message AdminWithdrawListRequest {
+}
+
+message AdminWithdrawListReply {
+	repeated List withdraw = 1;
+	message List {
+		string address = 5;
+		string created_at = 1;
+		string amount = 2;
+		string relAmount = 6;
+		string type = 3;
+		string status=4;
 	}
 }

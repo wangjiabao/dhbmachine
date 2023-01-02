@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationAppAdminLocationList = "/api.App/AdminLocationList"
 const OperationAppAdminRewardList = "/api.App/AdminRewardList"
 const OperationAppAdminUserList = "/api.App/AdminUserList"
+const OperationAppAdminWithdrawList = "/api.App/AdminWithdrawList"
 const OperationAppDeposit = "/api.App/Deposit"
 const OperationAppEthAuthorize = "/api.App/EthAuthorize"
 const OperationAppFeeRewardList = "/api.App/FeeRewardList"
@@ -35,6 +36,7 @@ type AppHTTPServer interface {
 	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
 	AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error)
 	AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error)
+	AdminWithdrawList(context.Context, *AdminWithdrawListRequest) (*AdminWithdrawListReply, error)
 	Deposit(context.Context, *DepositRequest) (*DepositReply, error)
 	EthAuthorize(context.Context, *EthAuthorizeRequest) (*EthAuthorizeReply, error)
 	FeeRewardList(context.Context, *FeeRewardListRequest) (*FeeRewardListReply, error)
@@ -58,6 +60,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/admin_dhb/reward_list", _App_AdminRewardList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/user_list", _App_AdminUserList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/location_list", _App_AdminLocationList0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/withdraw_list", _App_AdminWithdrawList0_HTTP_Handler(srv))
 }
 
 func _App_EthAuthorize0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
@@ -275,10 +278,30 @@ func _App_AdminLocationList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Conte
 	}
 }
 
+func _App_AdminWithdrawList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminWithdrawListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminWithdrawList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminWithdrawList(ctx, req.(*AdminWithdrawListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminWithdrawListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AppHTTPClient interface {
 	AdminLocationList(ctx context.Context, req *AdminLocationListRequest, opts ...http.CallOption) (rsp *AdminLocationListReply, err error)
 	AdminRewardList(ctx context.Context, req *AdminRewardListRequest, opts ...http.CallOption) (rsp *AdminRewardListReply, err error)
 	AdminUserList(ctx context.Context, req *AdminUserListRequest, opts ...http.CallOption) (rsp *AdminUserListReply, err error)
+	AdminWithdrawList(ctx context.Context, req *AdminWithdrawListRequest, opts ...http.CallOption) (rsp *AdminWithdrawListReply, err error)
 	Deposit(ctx context.Context, req *DepositRequest, opts ...http.CallOption) (rsp *DepositReply, err error)
 	EthAuthorize(ctx context.Context, req *EthAuthorizeRequest, opts ...http.CallOption) (rsp *EthAuthorizeReply, err error)
 	FeeRewardList(ctx context.Context, req *FeeRewardListRequest, opts ...http.CallOption) (rsp *FeeRewardListReply, err error)
@@ -328,6 +351,19 @@ func (c *AppHTTPClientImpl) AdminUserList(ctx context.Context, in *AdminUserList
 	pattern := "/api/admin_dhb/user_list"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppAdminUserList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) AdminWithdrawList(ctx context.Context, in *AdminWithdrawListRequest, opts ...http.CallOption) (*AdminWithdrawListReply, error) {
+	var out AdminWithdrawListReply
+	pattern := "/api/admin_dhb/withdraw_list"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminWithdrawList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
