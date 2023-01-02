@@ -52,6 +52,17 @@ type UserBalance struct {
 	BalanceDhb  int64
 }
 
+type Withdraw struct {
+	ID              int64
+	UserId          int64
+	Amount          int64
+	RelAmount       int64
+	BalanceRecordId int64
+	Status          string
+	Type            string
+	CreatedAt       time.Time
+}
+
 type UserUseCase struct {
 	repo                          UserRepo
 	urRepo                        UserRecommendRepo
@@ -74,7 +85,7 @@ type Reward struct {
 	Reason           string
 	ReasonLocationId int64
 	LocationType     string
-	CreateAt         time.Time
+	CreatedAt        time.Time
 }
 
 type ConfigRepo interface {
@@ -91,6 +102,8 @@ type UserBalanceRepo interface {
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
 	GetUserRewards(ctx context.Context) ([]*Reward, error)
 	GetUserBalanceByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserBalance, error)
+	Withdraw(ctx context.Context, userId int64, amount int64, coinType string) (*Withdraw, error)
+	GetWithdrawByUserId(ctx context.Context, userId int64) ([]*Withdraw, error)
 }
 
 type UserRecommendRepo interface {
@@ -412,7 +425,7 @@ func (uuc *UserUseCase) RewardList(ctx context.Context, req *v1.RewardListReques
 				}
 
 				res.Rewards = append(res.Rewards, &v1.RewardListReply_List{
-					CreatedAt:      vUserReward.CreateAt.Format("2006-01-02 15:04:05"),
+					CreatedAt:      vUserReward.CreatedAt.Format("2006-01-02 15:04:05"),
 					Amount:         fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
 					LocationStatus: locations[vUserReward.ReasonLocationId].Status,
 					Type:           vUserReward.Type,
@@ -441,7 +454,7 @@ func (uuc *UserUseCase) RecommendRewardList(ctx context.Context, user *User) (*v
 	for _, vUserReward := range userRewards {
 		if "recommend" == vUserReward.Reason || "recommend_vip" == vUserReward.Reason {
 			res.Rewards = append(res.Rewards, &v1.RecommendRewardListReply_List{
-				CreatedAt: vUserReward.CreateAt.Format("2006-01-02 15:04:05"),
+				CreatedAt: vUserReward.CreatedAt.Format("2006-01-02 15:04:05"),
 				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
 				Type:      vUserReward.Type,
 				Reason:    vUserReward.Reason,
@@ -469,7 +482,7 @@ func (uuc *UserUseCase) FeeRewardList(ctx context.Context, user *User) (*v1.FeeR
 	for _, vUserReward := range userRewards {
 		if "fee" == vUserReward.Reason {
 			res.Rewards = append(res.Rewards, &v1.FeeRewardListReply_List{
-				CreatedAt: vUserReward.CreateAt.Format("2006-01-02 15:04:05"),
+				CreatedAt: vUserReward.CreatedAt.Format("2006-01-02 15:04:05"),
 				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
 			})
 		}
@@ -480,10 +493,53 @@ func (uuc *UserUseCase) FeeRewardList(ctx context.Context, user *User) (*v1.FeeR
 
 func (uuc *UserUseCase) WithdrawList(ctx context.Context, user *User) (*v1.WithdrawListReply, error) {
 
-	return &v1.WithdrawListReply{Withdraw: nil}, nil
+	var (
+		withdraws []*Withdraw
+		err       error
+	)
+
+	res := &v1.WithdrawListReply{
+		Withdraw: make([]*v1.WithdrawListReply_List, 0),
+	}
+
+	withdraws, err = uuc.ubRepo.GetWithdrawByUserId(ctx, user.ID)
+	if nil != err {
+		return res, err
+	}
+
+	for _, v := range withdraws {
+		res.Withdraw = append(res.Withdraw, &v1.WithdrawListReply_List{
+			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
+			Amount:    fmt.Sprintf("%.2f", float64(v.Amount)/float64(10000000000)),
+			Status:    v.Status,
+			Type:      v.Type,
+		})
+	}
+
+	return res, nil
 }
 
-func (uuc *UserUseCase) Withdraw(ctx context.Context, user *User) (*v1.WithdrawReply, error) {
+func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, user *User) (*v1.WithdrawReply, error) {
+
+	if "dhb" != req.SendBody.Type && "usdt" != req.SendBody.Type {
+		return &v1.WithdrawReply{
+			Status: "fail",
+		}, nil
+	}
+
+	amountFloat, _ := strconv.ParseFloat(req.SendBody.Amount, 10)
+	amountFloat *= 10000000000
+	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
+	if 0 >= amount {
+		return &v1.WithdrawReply{
+			Status: "fail",
+		}, nil
+	}
+
+	_, err := uuc.ubRepo.Withdraw(ctx, user.ID, amount, req.SendBody.Type)
+	if nil != err {
+		return nil, err
+	}
 
 	return &v1.WithdrawReply{
 		Status: "ok",
@@ -526,7 +582,7 @@ func (uuc *UserUseCase) AdminRewardList(ctx context.Context, req *v1.AdminReward
 		}
 
 		res.Rewards = append(res.Rewards, &v1.AdminRewardListReply_List{
-			CreatedAt: vUserReward.CreateAt.Format("2006-01-02 15:04:05"),
+			CreatedAt: vUserReward.CreatedAt.Format("2006-01-02 15:04:05"),
 			Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
 			Type:      vUserReward.Type,
 			Address:   users[vUserReward.UserId].Address,

@@ -348,7 +348,7 @@ func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1
 		userId = int64(c["UserId"].(float64))
 	}
 
-	return a.uuc.Withdraw(ctx, &biz.User{
+	return a.uuc.Withdraw(ctx, req, &biz.User{
 		ID: userId,
 	})
 }

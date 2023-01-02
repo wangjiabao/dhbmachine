@@ -61,6 +61,18 @@ type UserBalance struct {
 	UpdatedAt   time.Time `gorm:"type:datetime;not null"`
 }
 
+type Withdraw struct {
+	ID              int64     `gorm:"primarykey;type:int"`
+	UserId          int64     `gorm:"type:int"`
+	Amount          int64     `gorm:"type:bigint"`
+	RelAmount       int64     `gorm:"type:bigint"`
+	Status          string    `gorm:"type:varchar(45);not null"`
+	Type            string    `gorm:"type:varchar(45);not null"`
+	BalanceRecordId int64     `gorm:"type:int"`
+	CreatedAt       time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt       time.Time `gorm:"type:datetime;not null"`
+}
+
 type UserBalanceRecord struct {
 	ID        int64     `gorm:"primarykey;type:int"`
 	UserId    int64     `gorm:"type:int"`
@@ -521,6 +533,56 @@ func (ub *UserBalanceRepo) Deposit(ctx context.Context, userId int64, amount int
 	return userBalanceRecode.ID, nil
 }
 
+// Withdraw .
+func (ub *UserBalanceRepo) Withdraw(ctx context.Context, userId int64, amount int64, coinType string) (*biz.Withdraw, error) {
+	var withdraw Withdraw
+	withdraw.UserId = userId
+	withdraw.Amount = amount
+	withdraw.Type = coinType
+	res := ub.data.DB(ctx).Table("withdraw").Create(&withdraw)
+	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_WITHDRAW_ERROR", "提现记录创建失败")
+	}
+
+	return &biz.Withdraw{
+		ID:              withdraw.ID,
+		UserId:          withdraw.UserId,
+		Amount:          withdraw.Amount,
+		RelAmount:       withdraw.RelAmount,
+		BalanceRecordId: withdraw.BalanceRecordId,
+		Status:          withdraw.Status,
+		Type:            withdraw.Type,
+		CreatedAt:       withdraw.CreatedAt,
+	}, nil
+}
+
+// GetWithdrawByUserId .
+func (ub *UserBalanceRepo) GetWithdrawByUserId(ctx context.Context, userId int64) ([]*biz.Withdraw, error) {
+	var withdraws []*Withdraw
+	res := make([]*biz.Withdraw, 0)
+	if err := ub.data.db.Where("user_id=?", userId).Table("withdraw").Find(&withdraws).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("WITHDRAW_NOT_FOUND", "withdraw not found")
+		}
+
+		return nil, errors.New(500, "WITHDRAW ERROR", err.Error())
+	}
+
+	for _, withdraw := range withdraws {
+		res = append(res, &biz.Withdraw{
+			ID:              withdraw.ID,
+			UserId:          withdraw.UserId,
+			Amount:          withdraw.Amount,
+			RelAmount:       withdraw.RelAmount,
+			BalanceRecordId: withdraw.BalanceRecordId,
+			Status:          withdraw.Status,
+			Type:            withdraw.Type,
+			CreatedAt:       withdraw.CreatedAt,
+		})
+	}
+	return res, nil
+}
+
 // RecommendReward .
 func (ub *UserBalanceRepo) RecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error) {
 	var err error
@@ -647,7 +709,7 @@ func (ub *UserBalanceRepo) GetUserRewardByUserId(ctx context.Context, userId int
 			Reason:           reward.Reason,
 			ReasonLocationId: reward.ReasonLocationId,
 			LocationType:     reward.LocationType,
-			CreateAt:         reward.CreatedAt,
+			CreatedAt:        reward.CreatedAt,
 		})
 	}
 	return res, nil
@@ -676,7 +738,7 @@ func (ub *UserBalanceRepo) GetUserRewards(ctx context.Context) ([]*biz.Reward, e
 			Reason:           reward.Reason,
 			ReasonLocationId: reward.ReasonLocationId,
 			LocationType:     reward.LocationType,
-			CreateAt:         reward.CreatedAt,
+			CreatedAt:        reward.CreatedAt,
 		})
 	}
 	return res, nil

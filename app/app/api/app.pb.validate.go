@@ -1449,6 +1449,8 @@ func (m *WithdrawListRequest) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Type
+
 	if len(errors) > 0 {
 		return WithdrawListRequestMultiError(errors)
 	}
@@ -3070,6 +3072,10 @@ func (m *WithdrawListReply_List) validate(all bool) error {
 
 	// no validation rules for Amount
 
+	// no validation rules for Type
+
+	// no validation rules for Status
+
 	if len(errors) > 0 {
 		return WithdrawListReply_ListMultiError(errors)
 	}
@@ -3171,6 +3177,8 @@ func (m *WithdrawRequest_SendBody) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for Type
 
 	// no validation rules for Amount
 

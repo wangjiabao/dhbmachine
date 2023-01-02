@@ -208,6 +208,11 @@ paths:
             tags:
                 - App
             operationId: App_WithdrawList
+            parameters:
+                - name: type
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -455,6 +460,10 @@ components:
                     type: string
                 amount:
                     type: string
+                type:
+                    type: string
+                status:
+                    type: string
         WithdrawReply:
             type: object
             properties:
@@ -463,6 +472,8 @@ components:
         WithdrawRequest_SendBody:
             type: object
             properties:
+                type:
+                    type: string
                 amount:
                     type: string
 tags:
