@@ -23,13 +23,49 @@ service App {
 			get: "/api/app_server/deposit"
 		};
 	};
+
+	rpc userInfo (UserInfoRequest) returns (UserInfoReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/user_info"
+		};
+	};
+
+	rpc RewardList (RewardListRequest) returns (RewardListReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/reward_list"
+		};
+	};
+
+	rpc RecommendRewardList (RecommendRewardListRequest) returns (RecommendRewardListReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/recommend_reward_list"
+		};
+	};
+
+	rpc FeeRewardList (FeeRewardListRequest) returns (FeeRewardListReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/fee_reward_list"
+		};
+	};
+
+	rpc withdrawList (WithdrawListRequest) returns (WithdrawListReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/withdraw_list"
+		};
+	};
+
+	rpc withdraw (WithdrawRequest) returns (WithdrawReply) {
+		option (google.api.http) = {
+			post: "/api/app_server/withdraw"
+			body: "send_body"
+		};
+	};
 }
 
 message EthAuthorizeRequest {
 	message SendBody{
 		string address = 1;
 		string code = 2;
-		string sign = 3;
 	}
 
 	SendBody send_body = 1;
@@ -44,4 +80,91 @@ message DepositRequest {
 }
 
 message DepositReply {
+}
+
+message UserInfoRequest {
+
+}
+
+message UserInfoReply {
+	string address = 1;
+	int64 level = 2;
+	string status = 3;
+	string amount = 4;
+	string balanceUsdt = 5;
+	string balanceDhb = 6;
+	string inviteUrl = 7;
+	string inviteUserAddress = 8;
+	int64 recommendNum = 9;
+	int64 recommendTeamNum = 10;
+	string total = 11;
+	int64 row = 12;
+	int64 col = 13;
+	int64 currentMonthRecommendNum = 14;
+	string recommendTotal = 15;
+	string locationTotal = 16;
+	string level1Dhb = 17;
+	string level2Dhb = 18;
+	string level3Dhb = 19;
+}
+
+message RewardListRequest {
+	string type = 1;
+}
+
+message RewardListReply {
+	repeated List rewards = 1;
+	message List {
+		string  created_at = 1;
+		string amount = 2;
+		string locationStatus = 3;
+		string type = 4;
+	}
+}
+
+message RecommendRewardListRequest {
+}
+
+message RecommendRewardListReply {
+	repeated List rewards = 1;
+	message List {
+		string created_at = 1;
+		string amount = 2;
+		string type = 4;
+		string reason = 3;
+	}
+}
+
+message FeeRewardListRequest {
+}
+
+message  FeeRewardListReply {
+	repeated List rewards = 1;
+	message List {
+		string created_at = 1;
+		string amount = 2;
+	}
+}
+
+message WithdrawListRequest {
+}
+
+message WithdrawListReply {
+	repeated List withdraw = 1;
+	message List {
+		string  created_at = 1;
+		string amount = 2;
+	}
+}
+
+message WithdrawRequest {
+	message SendBody{
+		string amount = 1;
+	}
+
+	SendBody send_body = 1;
+}
+
+message WithdrawReply {
+	string status = 1;
 }

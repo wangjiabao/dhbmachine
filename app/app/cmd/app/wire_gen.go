@@ -37,7 +37,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, auth *conf.Auth, logg
 	userRecommendRepo := data.NewUserRecommendRepo(dataData, logger)
 	userBalanceRepo := data.NewUserBalanceRepo(dataData, logger)
 	userUseCase := biz.NewUserUseCase(userRepo, transaction, configRepo, userInfoRepo, userRecommendRepo, userBalanceRepo, logger)
-	appService := service.NewAppService(userUseCase, logger, auth)
+	ethUserRecordRepo := data.NewEthUserRecordRepo(dataData, logger)
+	locationRepo := data.NewLocationRepo(dataData, logger)
+	userCurrentMonthRecommendRepo := data.NewUserCurrentMonthRecommendRepo(dataData, logger)
+	recordUseCase := biz.NewRecordUseCase(ethUserRecordRepo, locationRepo, userBalanceRepo, userRecommendRepo, userInfoRepo, userCurrentMonthRecommendRepo, transaction, logger)
+	appService := service.NewAppService(userUseCase, recordUseCase, logger, auth)
 	httpServer := server.NewHTTPServer(confServer, appService, logger)
 	app := newApp(logger, httpServer)
 	return app, func() {

@@ -3,6 +3,9 @@ package biz
 import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type EthUserRecord struct {
@@ -27,11 +30,14 @@ type Location struct {
 }
 
 type RecordUseCase struct {
-	ethUserRecordRepo EthUserRecordRepo
-	locationRepo      LocationRepo
-	userBalanceRepo   UserBalanceRepo
-	tx                Transaction
-	log               *log.Helper
+	ethUserRecordRepo             EthUserRecordRepo
+	userRecommendRepo             UserRecommendRepo
+	locationRepo                  LocationRepo
+	userBalanceRepo               UserBalanceRepo
+	userInfoRepo                  UserInfoRepo
+	userCurrentMonthRecommendRepo UserCurrentMonthRecommendRepo
+	tx                            Transaction
+	log                           *log.Helper
 }
 
 type EthUserRecordRepo interface {
@@ -41,18 +47,30 @@ type EthUserRecordRepo interface {
 type LocationRepo interface {
 	CreateLocation(ctx context.Context, rel *Location) (*Location, error)
 	GetLocationLast(ctx context.Context) (*Location, error)
-	GetRunningLocationByUserId(ctx context.Context, userId int64) (*Location, error)
+	GetLocationsByUserId(ctx context.Context, userId int64) ([]*Location, error)
 	GetRewardLocationByRowOrCol(ctx context.Context, row int64, col int64) ([]*Location, error)
+	GetRewardLocationByIds(ctx context.Context, ids ...int64) (map[int64]*Location, error)
 	UpdateLocation(ctx context.Context, location *Location) (*Location, error)
 }
 
-func NewRecordUseCase(ethUserRecordRepo EthUserRecordRepo, locationRepo LocationRepo, userBalanceRepo UserBalanceRepo, tx Transaction, logger log.Logger) *RecordUseCase {
+func NewRecordUseCase(
+	ethUserRecordRepo EthUserRecordRepo,
+	locationRepo LocationRepo,
+	userBalanceRepo UserBalanceRepo,
+	userRecommendRepo UserRecommendRepo,
+	userInfoRepo UserInfoRepo,
+	userCurrentMonthRecommendRepo UserCurrentMonthRecommendRepo,
+	tx Transaction,
+	logger log.Logger) *RecordUseCase {
 	return &RecordUseCase{
-		ethUserRecordRepo: ethUserRecordRepo,
-		locationRepo:      locationRepo,
-		userBalanceRepo:   userBalanceRepo,
-		tx:                tx,
-		log:               log.NewHelper(logger),
+		ethUserRecordRepo:             ethUserRecordRepo,
+		locationRepo:                  locationRepo,
+		userRecommendRepo:             userRecommendRepo,
+		userBalanceRepo:               userBalanceRepo,
+		userCurrentMonthRecommendRepo: userCurrentMonthRecommendRepo,
+		userInfoRepo:                  userInfoRepo,
+		tx:                            tx,
+		log:                           log.NewHelper(logger),
 	}
 }
 
@@ -61,30 +79,45 @@ func (ruc *RecordUseCase) GetEthUserRecordByTxHash(ctx context.Context, txHash .
 }
 
 func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord ...*EthUserRecord) (bool, error) {
-
-	// todo 加入数据库，判断复投，直推，单个点位
-
 	for _, v := range ethUserRecord {
 		var (
-			lastLocation         *Location
-			currentValue         int64
-			locationCurrentLevel int64
-			locationCurrent      int64
-			locationCurrentMax   int64
-			locationRow          int64
-			locationCol          int64
-			currentLocation      *Location
-			rewardLocations      []*Location
-			err                  error
+			lastLocation            *Location
+			myLocations             []*Location
+			currentValue            int64
+			amount                  int64
+			locationCurrentLevel    int64
+			locationCurrent         int64
+			locationCurrentMax      int64
+			locationRow             int64
+			locationCol             int64
+			currentLocation         *Location
+			rewardLocations         []*Location
+			userRecommend           *UserRecommend
+			myUserRecommendUserId   int64
+			myUserRecommendUserInfo *UserInfo
+			err                     error
 		)
 
 		if "DHB" == v.CoinType {
 			continue
 		}
 		// 获取当前用户的占位信息，已经有运行中的跳过
-		_, err = ruc.locationRepo.GetRunningLocationByUserId(ctx, v.UserId)
-		if nil == err {
+		myLocations, err = ruc.locationRepo.GetLocationsByUserId(ctx, v.UserId)
+		if nil == myLocations { // 查询异常跳过本次循环
 			continue
+		}
+		if 0 < len(myLocations) { // 也代表复投
+			tmpStatusRunning := false
+			for _, vMyLocations := range myLocations {
+				if "running" == vMyLocations.Status {
+					tmpStatusRunning = true
+					break
+				}
+			}
+
+			if tmpStatusRunning { // 有运行中直接跳过本次循环
+				continue
+			}
 		}
 
 		// 获取最后一行数据
@@ -117,12 +150,26 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 		} else {
 			continue
 		}
+		amount = currentValue
 
 		// 占位分红人
 		rewardLocations, err = ruc.locationRepo.GetRewardLocationByRowOrCol(ctx, locationRow, locationCol)
 
+		// 推荐人
+		userRecommend, err = ruc.userRecommendRepo.GetUserRecommendByUserId(ctx, v.UserId)
+		if nil != err {
+			continue
+		}
+		if "" != userRecommend.RecommendCode {
+			tmpRecommendUserIds := strings.Split(userRecommend.RecommendCode, "D")
+			if 2 <= len(tmpRecommendUserIds) {
+				myUserRecommendUserId, _ = strconv.ParseInt(tmpRecommendUserIds[len(tmpRecommendUserIds)-1], 10, 64) // 最后一位是直推人
+			}
+		}
+		myUserRecommendUserInfo, err = ruc.userInfoRepo.GetUserInfoByUserId(ctx, myUserRecommendUserId)
+
 		if err = ruc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
-			currentLocation, err = ruc.locationRepo.CreateLocation(ctx, &Location{
+			currentLocation, err = ruc.locationRepo.CreateLocation(ctx, &Location{ // 占位
 				UserId:       v.UserId,
 				Status:       "running",
 				CurrentLevel: locationCurrentLevel,
@@ -141,12 +188,27 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 					if "running" != vRewardLocations.Status {
 						continue
 					}
-					tmpAmount := currentValue / 10000000000
+					if locationRow == vRewardLocations.Row && locationCol == vRewardLocations.Col { // 跳过自己
+						continue
+					}
+
+					var locationType string
+					var tmpAmount int64
+					if locationRow == vRewardLocations.Row { // 同行的人
+						tmpAmount = currentValue / 100 * 5
+						locationType = "row"
+					} else if locationCol == vRewardLocations.Col { // 同列的人
+						tmpAmount = currentValue / 100
+						locationType = "col"
+					} else {
+						continue
+					}
+
 					tmpBalanceAmount := tmpAmount
 					tmpCurrent := vRewardLocations.Current
 					vRewardLocations.Current += tmpAmount
 
-					if vRewardLocations.Current >= vRewardLocations.CurrentMax {
+					if vRewardLocations.Current >= vRewardLocations.CurrentMax { // 占位分红人分满停止
 						tmpBalanceAmount = vRewardLocations.CurrentMax - tmpCurrent
 						vRewardLocations.Current = vRewardLocations.CurrentMax
 						vRewardLocations.Status = "stop"
@@ -156,7 +218,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 					if nil != err {
 						return err
 					}
-					_, err = ruc.userBalanceRepo.LocationReward(ctx, vRewardLocations.UserId, tmpBalanceAmount, currentLocation.ID, vRewardLocations.ID) // 分红信息修改
+					_, err = ruc.userBalanceRepo.LocationReward(ctx, vRewardLocations.UserId, tmpBalanceAmount, currentLocation.ID, vRewardLocations.ID, locationType) // 分红信息修改
 					if nil != err {
 						return err
 					}
@@ -165,19 +227,72 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 
 			}
 
+			amount = amount / 100 * 50 // 金额直接扣除百分之50
+
+			// 推荐人
+			if nil != myUserRecommendUserInfo {
+				if 0 == len(myLocations) { // vip 等级调整，被推荐人首次入单
+					myUserRecommendUserInfo.HistoryRecommend += 1
+					if myUserRecommendUserInfo.HistoryRecommend >= 10 {
+						myUserRecommendUserInfo.Vip = 5
+					} else if myUserRecommendUserInfo.HistoryRecommend >= 8 {
+						myUserRecommendUserInfo.Vip = 4
+					} else if myUserRecommendUserInfo.HistoryRecommend >= 6 {
+						myUserRecommendUserInfo.Vip = 3
+					} else if myUserRecommendUserInfo.HistoryRecommend >= 4 {
+						myUserRecommendUserInfo.Vip = 2
+					} else if myUserRecommendUserInfo.HistoryRecommend >= 2 {
+						myUserRecommendUserInfo.Vip = 1
+					}
+
+					_, err = ruc.userInfoRepo.UpdateUserInfo(ctx, myUserRecommendUserInfo) // 推荐人信息修改
+					if nil != err {
+						return err
+					}
+					amount -= currentValue / 100 * 20                                                                                      // 扣除百分之20
+					_, err = ruc.userBalanceRepo.FirstRecommendReward(ctx, myUserRecommendUserId, currentValue/100*20, currentLocation.ID) // 直推人奖励
+					if nil != err {
+						return err
+					}
+					_, err = ruc.userCurrentMonthRecommendRepo.CreateUserCurrentMonthRecommend(ctx, &UserCurrentMonthRecommend{ // 直推人本月推荐人数
+						UserId:          myUserRecommendUserId,
+						RecommendUserId: v.UserId,
+						Date:            time.Now().UTC().Add(8 * time.Hour),
+					})
+					if nil != err {
+						return err
+					}
+				}
+
+				var tmpMyRecommendAmount int64
+				if 5 == myUserRecommendUserInfo.Vip { // 会员等级分红
+					tmpMyRecommendAmount = currentValue / 100 * 20
+				} else if 4 == myUserRecommendUserInfo.Vip {
+					tmpMyRecommendAmount = currentValue / 100 * 16
+				} else if 3 == myUserRecommendUserInfo.Vip {
+					tmpMyRecommendAmount = currentValue / 100 * 12
+				} else if 2 == myUserRecommendUserInfo.Vip {
+					tmpMyRecommendAmount = currentValue / 100 * 8
+				} else if 1 == myUserRecommendUserInfo.Vip {
+					tmpMyRecommendAmount = currentValue / 100 * 4
+				}
+				amount -= tmpMyRecommendAmount                                                                                     // 扣除推荐人分红
+				_, err = ruc.userBalanceRepo.RecommendReward(ctx, myUserRecommendUserId, tmpMyRecommendAmount, currentLocation.ID) // 推荐人奖励
+				if nil != err {
+					return err
+				}
+			}
+
+			_, err = ruc.userBalanceRepo.Deposit(ctx, v.UserId, amount) // 充值
+			if nil != err {
+				return err
+			}
+
 			return nil
 		}); nil != err {
 			continue
 		}
 	}
-
-	// todo 占位
-
-	// todo 直推人分红，推荐人等级调整，推荐人每月五人
-
-	// todo 分红,分红人金额检测满额
-
-	//
 
 	return true, nil
 }

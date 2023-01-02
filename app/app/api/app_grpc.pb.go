@@ -24,6 +24,12 @@ const _ = grpc.SupportPackageIsVersion7
 type AppClient interface {
 	EthAuthorize(ctx context.Context, in *EthAuthorizeRequest, opts ...grpc.CallOption) (*EthAuthorizeReply, error)
 	Deposit(ctx context.Context, in *DepositRequest, opts ...grpc.CallOption) (*DepositReply, error)
+	UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoReply, error)
+	RewardList(ctx context.Context, in *RewardListRequest, opts ...grpc.CallOption) (*RewardListReply, error)
+	RecommendRewardList(ctx context.Context, in *RecommendRewardListRequest, opts ...grpc.CallOption) (*RecommendRewardListReply, error)
+	FeeRewardList(ctx context.Context, in *FeeRewardListRequest, opts ...grpc.CallOption) (*FeeRewardListReply, error)
+	WithdrawList(ctx context.Context, in *WithdrawListRequest, opts ...grpc.CallOption) (*WithdrawListReply, error)
+	Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error)
 }
 
 type appClient struct {
@@ -52,12 +58,72 @@ func (c *appClient) Deposit(ctx context.Context, in *DepositRequest, opts ...grp
 	return out, nil
 }
 
+func (c *appClient) UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoReply, error) {
+	out := new(UserInfoReply)
+	err := c.cc.Invoke(ctx, "/api.App/userInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) RewardList(ctx context.Context, in *RewardListRequest, opts ...grpc.CallOption) (*RewardListReply, error) {
+	out := new(RewardListReply)
+	err := c.cc.Invoke(ctx, "/api.App/RewardList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) RecommendRewardList(ctx context.Context, in *RecommendRewardListRequest, opts ...grpc.CallOption) (*RecommendRewardListReply, error) {
+	out := new(RecommendRewardListReply)
+	err := c.cc.Invoke(ctx, "/api.App/RecommendRewardList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) FeeRewardList(ctx context.Context, in *FeeRewardListRequest, opts ...grpc.CallOption) (*FeeRewardListReply, error) {
+	out := new(FeeRewardListReply)
+	err := c.cc.Invoke(ctx, "/api.App/FeeRewardList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) WithdrawList(ctx context.Context, in *WithdrawListRequest, opts ...grpc.CallOption) (*WithdrawListReply, error) {
+	out := new(WithdrawListReply)
+	err := c.cc.Invoke(ctx, "/api.App/withdrawList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error) {
+	out := new(WithdrawReply)
+	err := c.cc.Invoke(ctx, "/api.App/withdraw", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServer is the server API for App service.
 // All implementations must embed UnimplementedAppServer
 // for forward compatibility
 type AppServer interface {
 	EthAuthorize(context.Context, *EthAuthorizeRequest) (*EthAuthorizeReply, error)
 	Deposit(context.Context, *DepositRequest) (*DepositReply, error)
+	UserInfo(context.Context, *UserInfoRequest) (*UserInfoReply, error)
+	RewardList(context.Context, *RewardListRequest) (*RewardListReply, error)
+	RecommendRewardList(context.Context, *RecommendRewardListRequest) (*RecommendRewardListReply, error)
+	FeeRewardList(context.Context, *FeeRewardListRequest) (*FeeRewardListReply, error)
+	WithdrawList(context.Context, *WithdrawListRequest) (*WithdrawListReply, error)
+	Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error)
 	mustEmbedUnimplementedAppServer()
 }
 
@@ -70,6 +136,24 @@ func (UnimplementedAppServer) EthAuthorize(context.Context, *EthAuthorizeRequest
 }
 func (UnimplementedAppServer) Deposit(context.Context, *DepositRequest) (*DepositReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Deposit not implemented")
+}
+func (UnimplementedAppServer) UserInfo(context.Context, *UserInfoRequest) (*UserInfoReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserInfo not implemented")
+}
+func (UnimplementedAppServer) RewardList(context.Context, *RewardListRequest) (*RewardListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RewardList not implemented")
+}
+func (UnimplementedAppServer) RecommendRewardList(context.Context, *RecommendRewardListRequest) (*RecommendRewardListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecommendRewardList not implemented")
+}
+func (UnimplementedAppServer) FeeRewardList(context.Context, *FeeRewardListRequest) (*FeeRewardListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FeeRewardList not implemented")
+}
+func (UnimplementedAppServer) WithdrawList(context.Context, *WithdrawListRequest) (*WithdrawListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawList not implemented")
+}
+func (UnimplementedAppServer) Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
 }
 func (UnimplementedAppServer) mustEmbedUnimplementedAppServer() {}
 
@@ -120,6 +204,114 @@ func _App_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _App_UserInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).UserInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/userInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).UserInfo(ctx, req.(*UserInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_RewardList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RewardListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).RewardList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/RewardList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).RewardList(ctx, req.(*RewardListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_RecommendRewardList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecommendRewardListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).RecommendRewardList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/RecommendRewardList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).RecommendRewardList(ctx, req.(*RecommendRewardListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_FeeRewardList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FeeRewardListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).FeeRewardList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/FeeRewardList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).FeeRewardList(ctx, req.(*FeeRewardListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_WithdrawList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithdrawListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).WithdrawList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/withdrawList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).WithdrawList(ctx, req.(*WithdrawListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithdrawRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).Withdraw(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/withdraw",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).Withdraw(ctx, req.(*WithdrawRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // App_ServiceDesc is the grpc.ServiceDesc for App service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +326,30 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "deposit",
 			Handler:    _App_Deposit_Handler,
+		},
+		{
+			MethodName: "userInfo",
+			Handler:    _App_UserInfo_Handler,
+		},
+		{
+			MethodName: "RewardList",
+			Handler:    _App_RewardList_Handler,
+		},
+		{
+			MethodName: "RecommendRewardList",
+			Handler:    _App_RecommendRewardList_Handler,
+		},
+		{
+			MethodName: "FeeRewardList",
+			Handler:    _App_FeeRewardList_Handler,
+		},
+		{
+			MethodName: "withdrawList",
+			Handler:    _App_WithdrawList_Handler,
+		},
+		{
+			MethodName: "withdraw",
+			Handler:    _App_Withdraw_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

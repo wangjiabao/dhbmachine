@@ -48,6 +48,125 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/app_server/fee_reward_list:
+        get:
+            tags:
+                - App
+            operationId: App_FeeRewardList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/FeeRewardListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/app_server/recommend_reward_list:
+        get:
+            tags:
+                - App
+            operationId: App_RecommendRewardList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RecommendRewardListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/app_server/reward_list:
+        get:
+            tags:
+                - App
+            operationId: App_RewardList
+            parameters:
+                - name: type
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RewardListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/app_server/user_info:
+        get:
+            tags:
+                - App
+            operationId: App_UserInfo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserInfoReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/app_server/withdraw:
+        post:
+            tags:
+                - App
+            operationId: App_Withdraw
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WithdrawRequest_SendBody'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WithdrawReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/app_server/withdraw_list:
+        get:
+            tags:
+                - App
+            operationId: App_WithdrawList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WithdrawListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
 components:
     schemas:
         DepositReply:
@@ -65,7 +184,19 @@ components:
                     type: string
                 code:
                     type: string
-                sign:
+        FeeRewardListReply:
+            type: object
+            properties:
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/FeeRewardListReply_List'
+        FeeRewardListReply_List:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                amount:
                     type: string
         GoogleProtobufAny:
             type: object
@@ -75,6 +206,42 @@ components:
                     description: The type of the serialized message.
             additionalProperties: true
             description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        RecommendRewardListReply:
+            type: object
+            properties:
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RecommendRewardListReply_List'
+        RecommendRewardListReply_List:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                amount:
+                    type: string
+                type:
+                    type: string
+                reason:
+                    type: string
+        RewardListReply:
+            type: object
+            properties:
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RewardListReply_List'
+        RewardListReply_List:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                amount:
+                    type: string
+                locationStatus:
+                    type: string
+                type:
+                    type: string
         Status:
             type: object
             properties:
@@ -91,5 +258,76 @@ components:
                         $ref: '#/components/schemas/GoogleProtobufAny'
                     description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
             description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        UserInfoReply:
+            type: object
+            properties:
+                address:
+                    type: string
+                level:
+                    type: integer
+                    format: int64
+                status:
+                    type: string
+                amount:
+                    type: string
+                balanceUsdt:
+                    type: string
+                balanceDhb:
+                    type: string
+                inviteUrl:
+                    type: string
+                inviteUserAddress:
+                    type: string
+                recommendNum:
+                    type: integer
+                    format: int64
+                recommendTeamNum:
+                    type: integer
+                    format: int64
+                total:
+                    type: string
+                row:
+                    type: integer
+                    format: int64
+                col:
+                    type: integer
+                    format: int64
+                currentMonthRecommendNum:
+                    type: integer
+                    format: int64
+                recommendTotal:
+                    type: string
+                locationTotal:
+                    type: string
+                level1Dhb:
+                    type: string
+                level2Dhb:
+                    type: string
+                level3Dhb:
+                    type: string
+        WithdrawListReply:
+            type: object
+            properties:
+                withdraw:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/WithdrawListReply_List'
+        WithdrawListReply_List:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                amount:
+                    type: string
+        WithdrawReply:
+            type: object
+            properties:
+                status:
+                    type: string
+        WithdrawRequest_SendBody:
+            type: object
+            properties:
+                amount:
+                    type: string
 tags:
     - name: App
