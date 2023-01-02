@@ -305,6 +305,12 @@ components:
                     type: string
                 level3Dhb:
                     type: string
+                usdt:
+                    type: string
+                dhb:
+                    type: string
+                account:
+                    type: string
         WithdrawListReply:
             type: object
             properties:

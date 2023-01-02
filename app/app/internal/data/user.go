@@ -294,7 +294,7 @@ func (ui *UserInfoRepo) UpdateUserInfo(ctx context.Context, u *biz.UserInfo) (*b
 	userInfo.Vip = u.Vip
 	userInfo.HistoryRecommend = u.HistoryRecommend
 
-	res := ui.data.DB(ctx).Table("user_info").Updates(&userInfo)
+	res := ui.data.DB(ctx).Table("user_info").Where("user_id=?", u.UserId).Updates(&userInfo)
 	if res.Error != nil {
 		return nil, errors.New(500, "UPDATE_USER_INFO_ERROR", "用户信息修改失败")
 	}
@@ -413,7 +413,7 @@ func (ub *UserBalanceRepo) LocationReward(ctx context.Context, userId int64, amo
 	var err error
 	if err = ub.data.DB(ctx).Table("user_balance").
 		Where("user_id=?", userId).
-		Updates(map[string]interface{}{"balance": gorm.Expr("balance + ?", amount)}).Error; nil != err {
+		Updates(map[string]interface{}{"balance_usdt": gorm.Expr("balance_usdt + ?", amount)}).Error; nil != err {
 		return 0, errors.NotFound("user balance err", "user balance not found")
 	}
 
@@ -455,7 +455,7 @@ func (ub *UserBalanceRepo) Deposit(ctx context.Context, userId int64, amount int
 	var err error
 	if err = ub.data.DB(ctx).Table("user_balance").
 		Where("user_id=?", userId).
-		Updates(map[string]interface{}{"balance": gorm.Expr("balance + ?", amount)}).Error; nil != err {
+		Updates(map[string]interface{}{"balance_usdt": gorm.Expr("balance_usdt + ?", amount)}).Error; nil != err {
 		return 0, errors.NotFound("user balance err", "user balance not found")
 	}
 
@@ -483,7 +483,7 @@ func (ub *UserBalanceRepo) RecommendReward(ctx context.Context, userId int64, am
 	var err error
 	if err = ub.data.DB(ctx).Table("user_balance").
 		Where("user_id=?", userId).
-		Updates(map[string]interface{}{"balance": gorm.Expr("balance + ?", amount)}).Error; nil != err {
+		Updates(map[string]interface{}{"balance_usdt": gorm.Expr("balance_usdt + ?", amount)}).Error; nil != err {
 		return 0, errors.NotFound("user balance err", "user balance not found")
 	}
 
@@ -523,7 +523,7 @@ func (ub *UserBalanceRepo) FirstRecommendReward(ctx context.Context, userId int6
 	var err error
 	if err = ub.data.DB(ctx).Table("user_balance").
 		Where("user_id=?", userId).
-		Updates(map[string]interface{}{"balance": gorm.Expr("balance + ?", amount)}).Error; nil != err {
+		Updates(map[string]interface{}{"balance_usdt": gorm.Expr("balance_usdt + ?", amount)}).Error; nil != err {
 		return 0, errors.NotFound("user balance err", "user balance not found")
 	}
 

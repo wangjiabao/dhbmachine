@@ -35,7 +35,7 @@ func NewEthUserRecordRepo(data *Data, logger log.Logger) biz.EthUserRecordRepo {
 
 func (e *EthUserRecordRepo) GetEthUserRecordListByHash(ctx context.Context, hash ...string) (map[string]*biz.EthUserRecord, error) {
 	var ethUserRecord []*EthUserRecord
-	if err := e.data.DB(ctx).Table("room").Where("hash IN (?)", hash).Find(&ethUserRecord).Error; err != nil {
+	if err := e.data.DB(ctx).Table("eth_user_record").Where("hash IN (?)", hash).Find(&ethUserRecord).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.NotFound("USER_RECOMMEND_NOT_FOUND", "user recommend not found")
 		}
@@ -57,4 +57,29 @@ func (e *EthUserRecordRepo) GetEthUserRecordListByHash(ctx context.Context, hash
 	}
 
 	return res, nil
+}
+
+func (e *EthUserRecordRepo) CreateEthUserRecordListByHash(ctx context.Context, r *biz.EthUserRecord) (*biz.EthUserRecord, error) {
+	var ethUserRecord EthUserRecord
+	ethUserRecord.UserId = r.UserId
+	ethUserRecord.Hash = r.Hash
+	ethUserRecord.Type = r.Type
+	ethUserRecord.Status = r.Status
+	ethUserRecord.Amount = r.Amount
+	ethUserRecord.CoinType = r.CoinType
+
+	res := e.data.DB(ctx).Table("eth_user_record").Create(&ethUserRecord)
+	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_ETH_USER_RECORD_ERROR", "以太坊交易信息创建失败")
+	}
+
+	return &biz.EthUserRecord{
+		ID:       ethUserRecord.ID,
+		UserId:   ethUserRecord.UserId,
+		Hash:     ethUserRecord.Hash,
+		Status:   ethUserRecord.Status,
+		Type:     ethUserRecord.Type,
+		Amount:   ethUserRecord.Amount,
+		CoinType: ethUserRecord.CoinType,
+	}, nil
 }

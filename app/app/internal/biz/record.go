@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
 	"strconv"
 	"strings"
@@ -42,6 +43,7 @@ type RecordUseCase struct {
 
 type EthUserRecordRepo interface {
 	GetEthUserRecordListByHash(ctx context.Context, hash ...string) (map[string]*EthUserRecord, error)
+	CreateEthUserRecordListByHash(ctx context.Context, r *EthUserRecord) (*EthUserRecord, error)
 }
 
 type LocationRepo interface {
@@ -79,7 +81,7 @@ func (ruc *RecordUseCase) GetEthUserRecordByTxHash(ctx context.Context, txHash .
 }
 
 func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord ...*EthUserRecord) (bool, error) {
-	for _, v := range ethUserRecord {
+	for k, v := range ethUserRecord {
 		var (
 			lastLocation            *Location
 			myLocations             []*Location
@@ -122,7 +124,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 
 		// 获取最后一行数据
 		lastLocation, err = ruc.locationRepo.GetLocationLast(ctx)
-		if nil == err {
+		if nil == lastLocation {
 			locationRow = 1
 			locationCol = 1
 		} else {
@@ -135,19 +137,21 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 			}
 		}
 
-		if "100000000000000000000" == v.Amount {
+		fmt.Println(444, v.Amount)
+		if "10000000000000000" == v.Amount {
 			locationCurrentLevel = 1
 			locationCurrentMax = 5000000000000
 			currentValue = 1000000000000
-		} else if "200000000000000000000" == v.Amount {
+		} else if "20000000000000000" == v.Amount {
 			locationCurrentLevel = 2
 			locationCurrentMax = 10000000000000
 			currentValue = 2000000000000
-		} else if "500000000000000000000" == v.Amount {
+		} else if "50000000000000000" == v.Amount {
 			locationCurrentLevel = 3
 			locationCurrentMax = 25000000000000
 			currentValue = 5000000000000
 		} else {
+			fmt.Println(455)
 			continue
 		}
 		amount = currentValue
@@ -276,14 +280,40 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 				} else if 1 == myUserRecommendUserInfo.Vip {
 					tmpMyRecommendAmount = currentValue / 100 * 4
 				}
-				amount -= tmpMyRecommendAmount                                                                                     // 扣除推荐人分红
-				_, err = ruc.userBalanceRepo.RecommendReward(ctx, myUserRecommendUserId, tmpMyRecommendAmount, currentLocation.ID) // 推荐人奖励
-				if nil != err {
-					return err
+				if 0 < tmpMyRecommendAmount {
+					amount -= tmpMyRecommendAmount                                                                                     // 扣除推荐人分红
+					_, err = ruc.userBalanceRepo.RecommendReward(ctx, myUserRecommendUserId, tmpMyRecommendAmount, currentLocation.ID) // 推荐人奖励
+					if nil != err {
+						return err
+					}
 				}
 			}
 
 			_, err = ruc.userBalanceRepo.Deposit(ctx, v.UserId, amount) // 充值
+			if nil != err {
+				return err
+			}
+
+			_, err = ruc.ethUserRecordRepo.CreateEthUserRecordListByHash(ctx, &EthUserRecord{
+				Hash:     v.Hash,
+				UserId:   v.UserId,
+				Status:   v.Status,
+				Type:     v.Type,
+				Amount:   v.Amount,
+				CoinType: v.CoinType,
+			})
+			if nil != err {
+				return err
+			}
+
+			_, err = ruc.ethUserRecordRepo.CreateEthUserRecordListByHash(ctx, &EthUserRecord{
+				Hash:     ethUserRecord[k+1].Hash,
+				UserId:   ethUserRecord[k+1].UserId,
+				Status:   ethUserRecord[k+1].Status,
+				Type:     ethUserRecord[k+1].Type,
+				Amount:   ethUserRecord[k+1].Amount,
+				CoinType: ethUserRecord[k+1].CoinType,
+			})
 			if nil != err {
 				return err
 			}

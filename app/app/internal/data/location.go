@@ -118,7 +118,7 @@ func (lr *LocationRepo) UpdateLocation(ctx context.Context, l *biz.Location) (*b
 	var location Location
 	location.Status = l.Status
 	location.Current = l.Current
-	if err := lr.data.db.Table("location").
+	if err := lr.data.db.Table("location").Where("id=?", l.ID).
 		Updates(&location).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.NotFound("LOCATION_NOT_FOUND", "location not found")

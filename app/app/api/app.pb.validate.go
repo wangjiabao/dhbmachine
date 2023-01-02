@@ -629,6 +629,12 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for Level3Dhb
 
+	// no validation rules for Usdt
+
+	// no validation rules for Dhb
+
+	// no validation rules for Account
+
 	if len(errors) > 0 {
 		return UserInfoReplyMultiError(errors)
 	}

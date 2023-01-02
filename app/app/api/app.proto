@@ -106,6 +106,9 @@ message UserInfoReply {
 	string level1Dhb = 17;
 	string level2Dhb = 18;
 	string level3Dhb = 19;
+	string usdt = 20;
+	string dhb = 21;
+	string account = 22;
 }
 
 message RewardListRequest {

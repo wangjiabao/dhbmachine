@@ -92,11 +92,11 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 
 	// 每次一共最多查2000条，所以注意好外层调用的定时查询的时间设置，当然都可以重新定义，
 	// 在功能上调用者查询两种币的交易记录，每次都要把数据覆盖查询，是一个较大范围的查找防止遗漏数据，范围最起码要大于实际这段时间的入单量，不能边界查询容易掉单，这样的实现是因为简单
-	for i := 1; i < 10; i++ {
-		depositUsdtResult, err = requestEthDepositResult(200, int64(i), "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd")
+	for i := 1; i <= 1; i++ {
+		depositUsdtResult, err = requestEthDepositResult(10, int64(i), "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd")
 		// 辅助查询
-		depositDhbResult, err = requestEthDepositResult(200, int64(i), "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd")
-		tmpDepositDhbResult, err = requestEthDepositResult(100, int64(i+1), "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd")
+		depositDhbResult, err = requestEthDepositResult(10, int64(i), "0x43647126bECF6e1560D95e115538C4CCB9d92Ebe")
+		tmpDepositDhbResult, err = requestEthDepositResult(10, int64(i+1), "0x43647126bECF6e1560D95e115538C4CCB9d92Ebe")
 		for kTmpDepositDhbResult, v := range tmpDepositDhbResult {
 			if _, ok := tmpDepositDhbResult[kTmpDepositDhbResult]; !ok {
 				depositDhbResult[kTmpDepositDhbResult] = v
@@ -116,6 +116,9 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 		for k, v := range depositDhbResult {
 			hashKeys = append(hashKeys, k)
 			fromAccount = append(fromAccount, v.From)
+			if _, ok := userDepositDhbResult[v.From]; !ok {
+				userDepositDhbResult[v.From] = make(map[string]*eth, 0)
+			}
 			userDepositDhbResult[v.From][k] = v
 		}
 
@@ -125,16 +128,21 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 		}
 		existEthUserRecords, err = a.ruc.GetEthUserRecordByTxHash(ctx, hashKeys...)
 
+		fmt.Println(userDepositDhbResult, depositUsdtResult, existEthUserRecords)
 		// 统计开始
 		notExistDepositResult = make([]*biz.EthUserRecord, 0)
 		for _, vDepositUsdtResult := range depositUsdtResult { // 主查usdt
+			fmt.Println(vDepositUsdtResult)
 			if _, ok := existEthUserRecords[vDepositUsdtResult.Hash]; ok { // 记录已存在
+				fmt.Println(1)
 				continue
 			}
 			if _, ok := depositUsers[vDepositUsdtResult.From]; !ok { // 用户不存在
+				fmt.Println(2)
 				continue
 			}
 			if _, ok := userDepositDhbResult[vDepositUsdtResult.From]; !ok { // 没有dhb的充值记录
+				fmt.Println(13)
 				continue
 			}
 			var (
@@ -142,9 +150,11 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			)
 			// todo DHB config
 			for _, vUserDepositDhbResult := range userDepositDhbResult[vDepositUsdtResult.From] { // 充值数额类型匹配
-				if "100000000000000000000" == vDepositUsdtResult.Value && "100000000000000000000" == vUserDepositDhbResult.Value {
+				if "100000000000000000" == vDepositUsdtResult.Value && "100000000000000000" == vUserDepositDhbResult.Value {
 
-				} else if "200000000000000000000" == vDepositUsdtResult.Value && "2000000000000000000" == vUserDepositDhbResult.Value {
+				} else if "200000000000000000" == vDepositUsdtResult.Value && "200000000000000000" == vUserDepositDhbResult.Value {
+
+				} else if "500000000000000000" == vDepositUsdtResult.Value && "500000000000000000" == vUserDepositDhbResult.Value {
 
 				} else {
 					continue
@@ -171,6 +181,7 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			})
 		}
 
+		fmt.Println(notExistDepositResult)
 		_, err = a.ruc.EthUserRecordHandle(ctx, notExistDepositResult...)
 		if nil != err {
 			fmt.Println(err)
