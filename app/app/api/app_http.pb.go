@@ -19,14 +19,14 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationAppdeposit = "/api.App/deposit"
+const OperationAppDeposit = "/api.App/Deposit"
 const OperationAppEthAuthorize = "/api.App/EthAuthorize"
 const OperationAppFeeRewardList = "/api.App/FeeRewardList"
 const OperationAppRecommendRewardList = "/api.App/RecommendRewardList"
 const OperationAppRewardList = "/api.App/RewardList"
-const OperationAppuserInfo = "/api.App/userInfo"
-const OperationAppwithdraw = "/api.App/withdraw"
-const OperationAppwithdrawList = "/api.App/withdrawList"
+const OperationAppUserInfo = "/api.App/UserInfo"
+const OperationAppWithdraw = "/api.App/Withdraw"
+const OperationAppWithdrawList = "/api.App/WithdrawList"
 
 type AppHTTPServer interface {
 	Deposit(context.Context, *DepositRequest) (*DepositReply, error)
@@ -79,7 +79,7 @@ func _App_Deposit0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error 
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAppdeposit)
+		http.SetOperation(ctx, OperationAppDeposit)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.Deposit(ctx, req.(*DepositRequest))
 		})
@@ -98,7 +98,7 @@ func _App_UserInfo0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAppuserInfo)
+		http.SetOperation(ctx, OperationAppUserInfo)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.UserInfo(ctx, req.(*UserInfoRequest))
 		})
@@ -174,7 +174,7 @@ func _App_WithdrawList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) e
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAppwithdrawList)
+		http.SetOperation(ctx, OperationAppWithdrawList)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.WithdrawList(ctx, req.(*WithdrawListRequest))
 		})
@@ -196,7 +196,7 @@ func _App_Withdraw0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAppwithdraw)
+		http.SetOperation(ctx, OperationAppWithdraw)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.Withdraw(ctx, req.(*WithdrawRequest))
 		})
@@ -232,7 +232,7 @@ func (c *AppHTTPClientImpl) Deposit(ctx context.Context, in *DepositRequest, opt
 	var out DepositReply
 	pattern := "/api/app_server/deposit"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationAppdeposit))
+	opts = append(opts, http.Operation(OperationAppDeposit))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -297,7 +297,7 @@ func (c *AppHTTPClientImpl) UserInfo(ctx context.Context, in *UserInfoRequest, o
 	var out UserInfoReply
 	pattern := "/api/app_server/user_info"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationAppuserInfo))
+	opts = append(opts, http.Operation(OperationAppUserInfo))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -310,7 +310,7 @@ func (c *AppHTTPClientImpl) Withdraw(ctx context.Context, in *WithdrawRequest, o
 	var out WithdrawReply
 	pattern := "/api/app_server/withdraw"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationAppwithdraw))
+	opts = append(opts, http.Operation(OperationAppWithdraw))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in.SendBody, &out, opts...)
 	if err != nil {
@@ -323,7 +323,7 @@ func (c *AppHTTPClientImpl) WithdrawList(ctx context.Context, in *WithdrawListRe
 	var out WithdrawListReply
 	pattern := "/api/app_server/withdraw_list"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationAppwithdrawList))
+	opts = append(opts, http.Operation(OperationAppWithdrawList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

@@ -38,10 +38,10 @@ type UserCurrentMonthRecommend struct {
 }
 
 type Config struct {
-	ID    int64
-	Key   string
-	Name  string
-	Value string
+	ID      int64
+	KeyName string
+	Name    string
+	Value   string
 }
 
 type UserBalance struct {
@@ -147,13 +147,12 @@ func (uuc *UserUseCase) GetExistUserByAddressOrCreate(ctx context.Context, u *Us
 	user, err = uuc.repo.GetUserByAddress(ctx, u.Address) // 查询用户
 	if nil == user || nil != err {
 		code := req.SendBody.Code // 查询推荐码 abf00dd52c08a9213f225827bc3fb100 md5 dhbmachinefirst
-		decodeBytes, err = base64.StdEncoding.DecodeString(code)
-		code = string(decodeBytes)
-		if 1 >= len(code) {
-			return nil, errors.New(500, "USER_ERROR", "无效的推荐码")
-		}
-
 		if "abf00dd52c08a9213f225827bc3fb100" != code {
+			decodeBytes, err = base64.StdEncoding.DecodeString(code)
+			code = string(decodeBytes)
+			if 1 >= len(code) {
+				return nil, errors.New(500, "USER_ERROR", "无效的推荐码")
+			}
 			if userId, err = strconv.ParseInt(code[1:], 10, 64); 0 >= userId || nil != err {
 				return nil, errors.New(500, "USER_ERROR", "无效的推荐码")
 			}
@@ -223,9 +222,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		status                     string
 		currentMonthRecommendNum   int64
 		configs                    []*Config
-		Level1Dhb                  string
-		Level2Dhb                  string
-		Level3Dhb                  string
+		level1Dhb                  string
+		level2Dhb                  string
+		level3Dhb                  string
 		err                        error
 	)
 
@@ -259,31 +258,25 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	}
 
 	userRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, myUser.ID)
-	if nil != err && 1 != myUser.ID {
+	if nil == userRecommend {
 		return nil, err
 	}
 
 	myCode = "D" + strconv.FormatInt(myUser.ID, 10)
-	if nil == userRecommend {
-		codeByte := []byte(myCode)
-		encodeString = base64.StdEncoding.EncodeToString(codeByte)
-	} else {
-		myCode = userRecommend.RecommendCode + myCode
-		codeByte := []byte(myCode)
-		encodeString = base64.StdEncoding.EncodeToString(codeByte)
+	codeByte := []byte(myCode)
+	encodeString = base64.StdEncoding.EncodeToString(codeByte)
 
-		if "" != userRecommend.RecommendCode {
-			tmpRecommendUserIds := strings.Split(userRecommend.RecommendCode, "D")
-			if 2 <= len(tmpRecommendUserIds) {
-				myUserRecommendUserId, _ = strconv.ParseInt(tmpRecommendUserIds[len(tmpRecommendUserIds)-1], 10, 64) // 最后一位是直推人
-			}
+	if "" != userRecommend.RecommendCode {
+		tmpRecommendUserIds := strings.Split(userRecommend.RecommendCode, "D")
+		if 2 <= len(tmpRecommendUserIds) {
+			myUserRecommendUserId, _ = strconv.ParseInt(tmpRecommendUserIds[len(tmpRecommendUserIds)-1], 10, 64) // 最后一位是直推人
 		}
-
 		myRecommendUser, err = uuc.repo.GetUserById(ctx, myUserRecommendUserId)
 		if nil != err {
 			return nil, err
 		}
 		inviteUserAddress = myRecommendUser.Address
+		myCode = userRecommend.RecommendCode + myCode
 	}
 
 	// 团队
@@ -306,14 +299,16 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	}
 
 	// 位置
-	rewardLocations, err = uuc.locationRepo.GetRewardLocationByRowOrCol(ctx, myRow, myCol)
-	if nil != rewardLocations {
-		for _, vRewardLocation := range rewardLocations {
-			if myRow == vRewardLocation.Row {
-				rowNum++
-			}
-			if myCol == vRewardLocation.Col {
-				colNum++
+	if 0 < myRow && 0 < myCol {
+		rewardLocations, err = uuc.locationRepo.GetRewardLocationByRowOrCol(ctx, myRow, myCol)
+		if nil != rewardLocations {
+			for _, vRewardLocation := range rewardLocations {
+				if myRow == vRewardLocation.Row {
+					rowNum++
+				}
+				if myCol == vRewardLocation.Col {
+					colNum++
+				}
 			}
 		}
 	}
@@ -333,18 +328,18 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	configs, err = uuc.configRepo.GetConfigByKeys(ctx, "level1Dhb", "level2Dhb", "level3Dhb")
 	if nil != configs {
 		for _, vConfig := range configs {
-			if "Level1Dhb" == vConfig.Key {
-				Level1Dhb = vConfig.Key
-			} else if "Level2Dhb" == vConfig.Key {
-				Level2Dhb = vConfig.Key
-			} else if "Level3Dhb" == vConfig.Key {
-				Level3Dhb = vConfig.Key
+			if "level1Dhb" == vConfig.KeyName {
+				level1Dhb = vConfig.Value
+			} else if "level2Dhb" == vConfig.KeyName {
+				level2Dhb = vConfig.Value
+			} else if "level3Dhb" == vConfig.KeyName {
+				level3Dhb = vConfig.Value
 			}
 		}
 	}
 
 	return &v1.UserInfoReply{
-		Address:                  user.Address,
+		Address:                  myUser.Address,
 		Level:                    userInfo.Vip,
 		Status:                   status,
 		Amount:                   amount,
@@ -360,9 +355,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		CurrentMonthRecommendNum: currentMonthRecommendNum,
 		RecommendTotal:           fmt.Sprintf("%.2f", float64(recommendTotal)/float64(10000000000)),
 		LocationTotal:            fmt.Sprintf("%.2f", float64(locationTotal)/float64(10000000000)),
-		Level1Dhb:                Level1Dhb,
-		Level2Dhb:                Level2Dhb,
-		Level3Dhb:                Level3Dhb,
+		Level1Dhb:                level1Dhb,
+		Level2Dhb:                level2Dhb,
+		Level3Dhb:                level3Dhb,
 	}, nil
 }
 

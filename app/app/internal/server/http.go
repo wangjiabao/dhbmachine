@@ -50,6 +50,7 @@ func NewHTTPServer(c *conf.Server, app *service.AppService, logger log.Logger) *
 func NewWhiteListMatcher() selector.MatchFunc {
 	whiteList := make(map[string]struct{})
 	whiteList["/api.App/EthAuthorize"] = struct{}{}
+	whiteList["/api.App/deposit"] = struct{}{}
 	return func(ctx context.Context, operation string) bool {
 		if _, ok := whiteList[operation]; ok {
 			return false

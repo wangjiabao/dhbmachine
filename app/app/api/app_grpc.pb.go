@@ -51,7 +51,7 @@ func (c *appClient) EthAuthorize(ctx context.Context, in *EthAuthorizeRequest, o
 
 func (c *appClient) Deposit(ctx context.Context, in *DepositRequest, opts ...grpc.CallOption) (*DepositReply, error) {
 	out := new(DepositReply)
-	err := c.cc.Invoke(ctx, "/api.App/deposit", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.App/Deposit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (c *appClient) Deposit(ctx context.Context, in *DepositRequest, opts ...grp
 
 func (c *appClient) UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoReply, error) {
 	out := new(UserInfoReply)
-	err := c.cc.Invoke(ctx, "/api.App/userInfo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.App/UserInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *appClient) FeeRewardList(ctx context.Context, in *FeeRewardListRequest,
 
 func (c *appClient) WithdrawList(ctx context.Context, in *WithdrawListRequest, opts ...grpc.CallOption) (*WithdrawListReply, error) {
 	out := new(WithdrawListReply)
-	err := c.cc.Invoke(ctx, "/api.App/withdrawList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.App/WithdrawList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (c *appClient) WithdrawList(ctx context.Context, in *WithdrawListRequest, o
 
 func (c *appClient) Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error) {
 	out := new(WithdrawReply)
-	err := c.cc.Invoke(ctx, "/api.App/withdraw", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.App/Withdraw", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,7 @@ func _App_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.App/deposit",
+		FullMethod: "/api.App/Deposit",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).Deposit(ctx, req.(*DepositRequest))
@@ -214,7 +214,7 @@ func _App_UserInfo_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.App/userInfo",
+		FullMethod: "/api.App/UserInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).UserInfo(ctx, req.(*UserInfoRequest))
@@ -286,7 +286,7 @@ func _App_WithdrawList_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.App/withdrawList",
+		FullMethod: "/api.App/WithdrawList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).WithdrawList(ctx, req.(*WithdrawListRequest))
@@ -304,7 +304,7 @@ func _App_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.App/withdraw",
+		FullMethod: "/api.App/Withdraw",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).Withdraw(ctx, req.(*WithdrawRequest))
@@ -324,11 +324,11 @@ var App_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _App_EthAuthorize_Handler,
 		},
 		{
-			MethodName: "deposit",
+			MethodName: "Deposit",
 			Handler:    _App_Deposit_Handler,
 		},
 		{
-			MethodName: "userInfo",
+			MethodName: "UserInfo",
 			Handler:    _App_UserInfo_Handler,
 		},
 		{
@@ -344,11 +344,11 @@ var App_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _App_FeeRewardList_Handler,
 		},
 		{
-			MethodName: "withdrawList",
+			MethodName: "WithdrawList",
 			Handler:    _App_WithdrawList_Handler,
 		},
 		{
-			MethodName: "withdraw",
+			MethodName: "Withdraw",
 			Handler:    _App_Withdraw_Handler,
 		},
 	},

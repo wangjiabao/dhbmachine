@@ -6,6 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"strconv"
 	"time"
 )
 
@@ -45,7 +46,7 @@ type UserCurrentMonthRecommend struct {
 type Config struct {
 	ID        int64     `gorm:"primarykey;type:int"`
 	Name      string    `gorm:"type:varchar(45);not null"`
-	Key       string    `gorm:"type:varchar(45);not null"`
+	KeyName   string    `gorm:"type:varchar(45);not null"`
 	Value     string    `gorm:"type:varchar(1000);not null"`
 	CreatedAt time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt time.Time `gorm:"type:datetime;not null"`
@@ -177,7 +178,7 @@ func (u *UserRepo) GetUserByAddress(ctx context.Context, address string) (*biz.U
 func (c *ConfigRepo) GetConfigByKeys(ctx context.Context, keys ...string) ([]*biz.Config, error) {
 	var configs []*Config
 	res := make([]*biz.Config, 0)
-	if err := c.data.db.Where("key IN (?)", keys).Table("config").First(&configs).Error; err != nil {
+	if err := c.data.db.Where("key_name IN (?)", keys).Table("config").Find(&configs).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.NotFound("CONFIG_NOT_FOUND", "config not found")
 		}
@@ -187,10 +188,10 @@ func (c *ConfigRepo) GetConfigByKeys(ctx context.Context, keys ...string) ([]*bi
 
 	for _, config := range configs {
 		res = append(res, &biz.Config{
-			ID:    config.ID,
-			Key:   config.Key,
-			Name:  config.Name,
-			Value: config.Value,
+			ID:      config.ID,
+			KeyName: config.KeyName,
+			Name:    config.Name,
+			Value:   config.Value,
 		})
 	}
 
@@ -327,7 +328,7 @@ func (ur *UserRecommendRepo) GetUserRecommendByUserId(ctx context.Context, userI
 func (ur *UserRecommendRepo) GetUserRecommendByCode(ctx context.Context, code string) ([]*biz.UserRecommend, error) {
 	var userRecommends []*UserRecommend
 	res := make([]*biz.UserRecommend, 0)
-	if err := ur.data.db.Where("recommend_code Like ?", code+"%").Find(&userRecommends).Error; err != nil {
+	if err := ur.data.db.Where("recommend_code Like ?", code+"%").Table("user_recommend").Find(&userRecommends).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return res, errors.NotFound("USER_RECOMMEND_NOT_FOUND", "user recommend not found")
 		}
@@ -348,8 +349,11 @@ func (ur *UserRecommendRepo) GetUserRecommendByCode(ctx context.Context, code st
 // CreateUserRecommend .
 func (ur *UserRecommendRepo) CreateUserRecommend(ctx context.Context, u *biz.User, recommendUser *biz.UserRecommend) (*biz.UserRecommend, error) {
 	var tmpRecommendCode string
-	if 0 < recommendUser.UserId && 1 < len(recommendUser.RecommendCode) {
-		tmpRecommendCode = recommendUser.RecommendCode
+	if nil != recommendUser && 0 < recommendUser.UserId {
+		tmpRecommendCode = "D" + strconv.FormatInt(recommendUser.UserId, 10)
+		if "" != recommendUser.RecommendCode {
+			tmpRecommendCode = recommendUser.RecommendCode + tmpRecommendCode
+		}
 	}
 
 	var userRecommend UserRecommend

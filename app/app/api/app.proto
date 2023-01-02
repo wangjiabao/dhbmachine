@@ -18,13 +18,13 @@ service App {
 		};
 	};
 
-	rpc deposit (DepositRequest) returns (DepositReply) {
+	rpc Deposit (DepositRequest) returns (DepositReply) {
 		option (google.api.http) = {
 			get: "/api/app_server/deposit"
 		};
 	};
 
-	rpc userInfo (UserInfoRequest) returns (UserInfoReply) {
+	rpc UserInfo (UserInfoRequest) returns (UserInfoReply) {
 		option (google.api.http) = {
 			get: "/api/app_server/user_info"
 		};
@@ -48,13 +48,13 @@ service App {
 		};
 	};
 
-	rpc withdrawList (WithdrawListRequest) returns (WithdrawListReply) {
+	rpc WithdrawList (WithdrawListRequest) returns (WithdrawListReply) {
 		option (google.api.http) = {
 			get: "/api/app_server/withdraw_list"
 		};
 	};
 
-	rpc withdraw (WithdrawRequest) returns (WithdrawReply) {
+	rpc Withdraw (WithdrawRequest) returns (WithdrawReply) {
 		option (google.api.http) = {
 			post: "/api/app_server/withdraw"
 			body: "send_body"
