@@ -126,40 +126,39 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			continue
 		}
 		existEthUserRecords, err = a.ruc.GetEthUserRecordByTxHash(ctx, hashKeys...)
-		fmt.Println(depositUsers)
 		// 统计开始
 		notExistDepositResult = make([]*biz.EthUserRecord, 0)
 		for _, vDepositUsdtResult := range depositUsdtResult { // 主查usdt
-			fmt.Println(vDepositUsdtResult)
 			if _, ok := existEthUserRecords[vDepositUsdtResult.Hash]; ok { // 记录已存在
-				fmt.Println(1)
 				continue
 			}
 			if _, ok := depositUsers[vDepositUsdtResult.From]; !ok { // 用户不存在
-				fmt.Println(2, vDepositUsdtResult.From)
 				continue
 			}
 			if _, ok := userDepositDhbResult[vDepositUsdtResult.From]; !ok { // 没有dhb的充值记录
-				fmt.Println(13)
 				continue
 			}
 			var (
 				tmpDhbHash, tmpDhbHashValue string
 			)
 			// todo DHB config
+			tmpPass := false
 			for _, vUserDepositDhbResult := range userDepositDhbResult[vDepositUsdtResult.From] { // 充值数额类型匹配
 				if "10000000000000000" == vDepositUsdtResult.Value && "10000000000000000" == vUserDepositDhbResult.Value {
-
+					tmpPass = true
 				} else if "20000000000000000" == vDepositUsdtResult.Value && "20000000000000000" == vUserDepositDhbResult.Value {
-
+					tmpPass = true
 				} else if "50000000000000000" == vDepositUsdtResult.Value && "50000000000000000" == vUserDepositDhbResult.Value {
-
+					tmpPass = true
 				} else {
 					continue
 				}
 
 				tmpDhbHash = vUserDepositDhbResult.Hash
 				tmpDhbHashValue = vUserDepositDhbResult.Value
+			}
+			if !tmpPass {
+				continue
 			}
 
 			notExistDepositResult = append(notExistDepositResult, &biz.EthUserRecord{ // 两种币的记录
@@ -179,7 +178,6 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			})
 		}
 
-		fmt.Println(notExistDepositResult)
 		_, err = a.ruc.EthUserRecordHandle(ctx, notExistDepositResult...)
 		if nil != err {
 			fmt.Println(err)

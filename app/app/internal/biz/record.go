@@ -142,7 +142,6 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 			}
 		}
 
-		fmt.Println(444, v.Amount)
 		if "10000000000000000" == v.Amount {
 			locationCurrentLevel = 1
 			locationCurrentMax = 5000000000000
@@ -156,7 +155,6 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 			locationCurrentMax = 25000000000000
 			currentValue = 5000000000000
 		} else {
-			fmt.Println(455)
 			continue
 		}
 		amount = currentValue
