@@ -6,6 +6,60 @@ info:
     title: App API
     version: 0.0.1
 paths:
+    /api/admin_dhb/location_list:
+        get:
+            tags:
+                - App
+            operationId: App_AdminLocationList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminLocationListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/reward_list:
+        get:
+            tags:
+                - App
+            operationId: App_AdminRewardList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminRewardListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/admin_dhb/user_list:
+        get:
+            tags:
+                - App
+            operationId: App_AdminUserList
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AdminUserListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/app_server/deposit:
         get:
             tags:
@@ -169,6 +223,82 @@ paths:
                                 $ref: '#/components/schemas/Status'
 components:
     schemas:
+        AdminLocationListReply:
+            type: object
+            properties:
+                locations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AdminLocationListReply_LocationList'
+        AdminLocationListReply_LocationList:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                address:
+                    type: string
+                row:
+                    type: integer
+                    format: int64
+                col:
+                    type: integer
+                    format: int64
+                status:
+                    type: string
+                currentLevel:
+                    type: integer
+                    format: int64
+                current:
+                    type: string
+                currentMax:
+                    type: string
+        AdminRewardListReply:
+            type: object
+            properties:
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AdminRewardListReply_List'
+        AdminRewardListReply_List:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                amount:
+                    type: string
+                type:
+                    type: string
+                address:
+                    type: string
+                reason:
+                    type: string
+        AdminUserListReply:
+            type: object
+            properties:
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AdminUserListReply_UserList'
+        AdminUserListReply_UserList:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                address:
+                    type: string
+                balanceUsdt:
+                    type: string
+                balanceDhb:
+                    type: string
+                vip:
+                    type: integer
+                    format: int64
+                monthRecommend:
+                    type: integer
+                    format: int64
+                historyRecommend:
+                    type: integer
+                    format: int64
         DepositReply:
             type: object
             properties: {}

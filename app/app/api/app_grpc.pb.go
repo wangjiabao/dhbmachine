@@ -30,6 +30,9 @@ type AppClient interface {
 	FeeRewardList(ctx context.Context, in *FeeRewardListRequest, opts ...grpc.CallOption) (*FeeRewardListReply, error)
 	WithdrawList(ctx context.Context, in *WithdrawListRequest, opts ...grpc.CallOption) (*WithdrawListReply, error)
 	Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error)
+	AdminRewardList(ctx context.Context, in *AdminRewardListRequest, opts ...grpc.CallOption) (*AdminRewardListReply, error)
+	AdminUserList(ctx context.Context, in *AdminUserListRequest, opts ...grpc.CallOption) (*AdminUserListReply, error)
+	AdminLocationList(ctx context.Context, in *AdminLocationListRequest, opts ...grpc.CallOption) (*AdminLocationListReply, error)
 }
 
 type appClient struct {
@@ -112,6 +115,33 @@ func (c *appClient) Withdraw(ctx context.Context, in *WithdrawRequest, opts ...g
 	return out, nil
 }
 
+func (c *appClient) AdminRewardList(ctx context.Context, in *AdminRewardListRequest, opts ...grpc.CallOption) (*AdminRewardListReply, error) {
+	out := new(AdminRewardListReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminRewardList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) AdminUserList(ctx context.Context, in *AdminUserListRequest, opts ...grpc.CallOption) (*AdminUserListReply, error) {
+	out := new(AdminUserListReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminUserList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) AdminLocationList(ctx context.Context, in *AdminLocationListRequest, opts ...grpc.CallOption) (*AdminLocationListReply, error) {
+	out := new(AdminLocationListReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminLocationList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServer is the server API for App service.
 // All implementations must embed UnimplementedAppServer
 // for forward compatibility
@@ -124,6 +154,9 @@ type AppServer interface {
 	FeeRewardList(context.Context, *FeeRewardListRequest) (*FeeRewardListReply, error)
 	WithdrawList(context.Context, *WithdrawListRequest) (*WithdrawListReply, error)
 	Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error)
+	AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error)
+	AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error)
+	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
 	mustEmbedUnimplementedAppServer()
 }
 
@@ -154,6 +187,15 @@ func (UnimplementedAppServer) WithdrawList(context.Context, *WithdrawListRequest
 }
 func (UnimplementedAppServer) Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
+}
+func (UnimplementedAppServer) AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminRewardList not implemented")
+}
+func (UnimplementedAppServer) AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminUserList not implemented")
+}
+func (UnimplementedAppServer) AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminLocationList not implemented")
 }
 func (UnimplementedAppServer) mustEmbedUnimplementedAppServer() {}
 
@@ -312,6 +354,60 @@ func _App_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _App_AdminRewardList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminRewardListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminRewardList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminRewardList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminRewardList(ctx, req.(*AdminRewardListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_AdminUserList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminUserListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminUserList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminUserList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminUserList(ctx, req.(*AdminUserListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_AdminLocationList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminLocationListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminLocationList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminLocationList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminLocationList(ctx, req.(*AdminLocationListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // App_ServiceDesc is the grpc.ServiceDesc for App service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -350,6 +446,18 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Withdraw",
 			Handler:    _App_Withdraw_Handler,
+		},
+		{
+			MethodName: "AdminRewardList",
+			Handler:    _App_AdminRewardList_Handler,
+		},
+		{
+			MethodName: "AdminUserList",
+			Handler:    _App_AdminUserList_Handler,
+		},
+		{
+			MethodName: "AdminLocationList",
+			Handler:    _App_AdminLocationList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

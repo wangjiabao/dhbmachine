@@ -28,6 +28,7 @@ type Location struct {
 	CurrentMax   int64
 	Row          int64
 	Col          int64
+	CreatedAt    time.Time
 }
 
 type RecordUseCase struct {
@@ -53,6 +54,7 @@ type LocationRepo interface {
 	GetRewardLocationByRowOrCol(ctx context.Context, row int64, col int64) ([]*Location, error)
 	GetRewardLocationByIds(ctx context.Context, ids ...int64) (map[int64]*Location, error)
 	UpdateLocation(ctx context.Context, location *Location) (*Location, error)
+	GetLocations(ctx context.Context) ([]*Location, error)
 }
 
 func NewRecordUseCase(

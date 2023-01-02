@@ -207,3 +207,33 @@ func (lr *LocationRepo) GetRewardLocationByIds(ctx context.Context, ids ...int64
 
 	return res, nil
 }
+
+// GetLocations .
+func (lr *LocationRepo) GetLocations(ctx context.Context) ([]*biz.Location, error) {
+	var locations []*Location
+	if err := lr.data.db.Table("location").
+		Find(&locations).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
+		}
+
+		return nil, errors.New(500, "LOCATION ERROR", err.Error())
+	}
+
+	res := make([]*biz.Location, 0)
+	for _, location := range locations {
+		res = append(res, &biz.Location{
+			ID:           location.ID,
+			UserId:       location.UserId,
+			Status:       location.Status,
+			CurrentLevel: location.CurrentLevel,
+			Current:      location.Current,
+			CurrentMax:   location.CurrentMax,
+			Row:          location.Row,
+			Col:          location.Col,
+			CreatedAt:    location.CreatedAt,
+		})
+	}
+
+	return res, nil
+}

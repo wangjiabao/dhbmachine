@@ -255,6 +255,49 @@ func (u *UserRepo) GetUserByAddresses(ctx context.Context, Addresses ...string) 
 	return res, nil
 }
 
+// GetUserByUserIds .
+func (u *UserRepo) GetUserByUserIds(ctx context.Context, userIds ...int64) (map[int64]*biz.User, error) {
+	var users []*User
+	if err := u.data.db.Table("user").Where("id IN (?)", userIds).Find(&users).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.NotFound("USER_NOT_FOUND", "user not found")
+		}
+
+		return nil, errors.New(500, "USER ERROR", err.Error())
+	}
+
+	res := make(map[int64]*biz.User, 0)
+	for _, item := range users {
+		res[item.ID] = &biz.User{
+			ID:      item.ID,
+			Address: item.Address,
+		}
+	}
+	return res, nil
+}
+
+// GetUsers .
+func (u *UserRepo) GetUsers(ctx context.Context) ([]*biz.User, error) {
+	var users []*User
+	if err := u.data.db.Table("user").Find(&users).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.NotFound("USER_NOT_FOUND", "user not found")
+		}
+
+		return nil, errors.New(500, "USER ERROR", err.Error())
+	}
+
+	res := make([]*biz.User, 0)
+	for _, item := range users {
+		res = append(res, &biz.User{
+			ID:        item.ID,
+			Address:   item.Address,
+			CreatedAt: item.CreatedAt,
+		})
+	}
+	return res, nil
+}
+
 // CreateUser .
 func (u *UserRepo) CreateUser(ctx context.Context, uc *biz.User) (*biz.User, error) {
 	var user User
@@ -610,6 +653,35 @@ func (ub *UserBalanceRepo) GetUserRewardByUserId(ctx context.Context, userId int
 	return res, nil
 }
 
+// GetUserRewards .
+func (ub *UserBalanceRepo) GetUserRewards(ctx context.Context) ([]*biz.Reward, error) {
+	var rewards []*Reward
+	res := make([]*biz.Reward, 0)
+	if err := ub.data.db.Table("reward").Find(&rewards).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("REWARD_NOT_FOUND", "reward not found")
+		}
+
+		return nil, errors.New(500, "REWARD ERROR", err.Error())
+	}
+
+	for _, reward := range rewards {
+		res = append(res, &biz.Reward{
+			ID:               reward.ID,
+			UserId:           reward.UserId,
+			Amount:           reward.Amount,
+			BalanceRecordId:  reward.BalanceRecordId,
+			Type:             reward.Type,
+			TypeRecordId:     reward.TypeRecordId,
+			Reason:           reward.Reason,
+			ReasonLocationId: reward.ReasonLocationId,
+			LocationType:     reward.LocationType,
+			CreateAt:         reward.CreatedAt,
+		})
+	}
+	return res, nil
+}
+
 // CreateUserCurrentMonthRecommend .
 func (uc *UserCurrentMonthRecommendRepo) CreateUserCurrentMonthRecommend(ctx context.Context, u *biz.UserCurrentMonthRecommend) (*biz.UserCurrentMonthRecommend, error) {
 	var userCurrentMonthRecommend UserCurrentMonthRecommend
@@ -627,4 +699,74 @@ func (uc *UserCurrentMonthRecommendRepo) CreateUserCurrentMonthRecommend(ctx con
 		RecommendUserId: userCurrentMonthRecommend.RecommendUserId,
 		Date:            userCurrentMonthRecommend.Date,
 	}, nil
+}
+
+// GetUserBalanceByUserIds .
+func (ub UserBalanceRepo) GetUserBalanceByUserIds(ctx context.Context, userIds ...int64) (map[int64]*biz.UserBalance, error) {
+	var userBalances []*UserBalance
+	res := make(map[int64]*biz.UserBalance)
+	if err := ub.data.db.Where("user_id IN (?)", userIds).Table("user_balance").Find(&userBalances).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USER_BALANCE_NOT_FOUND", "user balance not found")
+		}
+
+		return nil, errors.New(500, "USER BALANCE ERROR", err.Error())
+	}
+
+	for _, userBalance := range userBalances {
+		res[userBalance.UserId] = &biz.UserBalance{
+			ID:          userBalance.ID,
+			UserId:      userBalance.UserId,
+			BalanceUsdt: userBalance.BalanceUsdt,
+			BalanceDhb:  userBalance.BalanceDhb,
+		}
+	}
+
+	return res, nil
+}
+
+// GetUserInfoByUserIds .
+func (ui *UserInfoRepo) GetUserInfoByUserIds(ctx context.Context, userIds ...int64) (map[int64]*biz.UserInfo, error) {
+	var userInfos []*UserInfo
+	res := make(map[int64]*biz.UserInfo, 0)
+	if err := ui.data.db.Where("user_id IN (?)", userIds).Table("user_info").Find(&userInfos).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USERINFO_NOT_FOUND", "userinfo not found")
+		}
+
+		return nil, errors.New(500, "USERINFO ERROR", err.Error())
+	}
+
+	for _, userInfo := range userInfos {
+		res[userInfo.UserId] = &biz.UserInfo{
+			ID:               userInfo.ID,
+			UserId:           userInfo.UserId,
+			Vip:              userInfo.Vip,
+			HistoryRecommend: userInfo.HistoryRecommend,
+		}
+	}
+
+	return res, nil
+}
+
+// GetUserCurrentMonthRecommendCountByUserIds .
+func (uc *UserCurrentMonthRecommendRepo) GetUserCurrentMonthRecommendCountByUserIds(ctx context.Context, userIds ...int64) (map[int64]int64, error) {
+	var userCurrentMonthRecommends []*UserCurrentMonthRecommend
+	res := make(map[int64]int64, 0)
+	if err := uc.data.db.Where("user_id IN (?)", userIds).Table("user_current_month_recommend").Find(&userCurrentMonthRecommends).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USER_CURRENT_MONTH_RECOMMEND_NOT_FOUND", "user current month recommend not found")
+		}
+
+		return nil, errors.New(500, "USER CURRENT MONTH RECOMMEND ERROR", err.Error())
+	}
+
+	for _, userCurrentMonthRecommend := range userCurrentMonthRecommends {
+		if _, ok := res[userCurrentMonthRecommend.UserId]; !ok {
+			res[userCurrentMonthRecommend.UserId] = 1
+		} else {
+			res[userCurrentMonthRecommend.UserId]++
+		}
+	}
+	return res, nil
 }

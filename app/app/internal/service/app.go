@@ -354,3 +354,15 @@ func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1
 		ID: userId,
 	})
 }
+
+func (a *AppService) AdminRewardList(ctx context.Context, req *v1.AdminRewardListRequest) (*v1.AdminRewardListReply, error) {
+	return a.uuc.AdminRewardList(ctx, req)
+}
+
+func (a *AppService) AdminUserList(ctx context.Context, req *v1.AdminUserListRequest) (*v1.AdminUserListReply, error) {
+	return a.uuc.AdminUserList(ctx, req)
+}
+
+func (a *AppService) AdminLocationList(ctx context.Context, req *v1.AdminLocationListRequest) (*v1.AdminLocationListReply, error) {
+	return a.uuc.AdminLocationList(ctx, req)
+}

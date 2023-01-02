@@ -60,6 +60,24 @@ service App {
 			body: "send_body"
 		};
 	};
+
+	rpc AdminRewardList (AdminRewardListRequest) returns (AdminRewardListReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/reward_list"
+		};
+	};
+
+	rpc AdminUserList (AdminUserListRequest) returns (AdminUserListReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/user_list"
+		};
+	};
+
+	rpc AdminLocationList (AdminLocationListRequest) returns (AdminLocationListReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/location_list"
+		};
+	};
 }
 
 message EthAuthorizeRequest {
@@ -170,4 +188,51 @@ message WithdrawRequest {
 
 message WithdrawReply {
 	string status = 1;
+}
+
+message AdminRewardListRequest {
+}
+
+message AdminRewardListReply {
+	repeated List rewards = 1;
+	message List {
+		string created_at = 1;
+		string amount = 2;
+		string type = 4;
+		string address = 5;
+		string reason = 6;
+	}
+}
+
+message AdminUserListRequest {
+}
+
+message AdminUserListReply {
+	repeated UserList users = 1;
+	message UserList {
+		string created_at = 1;
+		string address = 2;
+		string balanceUsdt = 3;
+		string balanceDhb = 4;
+		int64 vip = 5;
+		int64 monthRecommend = 7;
+		int64 historyRecommend = 6;
+	}
+}
+
+message AdminLocationListRequest {
+}
+
+message AdminLocationListReply {
+	repeated LocationList locations = 1;
+	message  LocationList {
+		string created_at = 1;
+		string address = 2;
+		int64 row = 3;
+		int64 col = 4;
+		string status = 5;
+		int64 currentLevel = 6;
+		string current = 7;
+		string currentMax = 8;
+	}
 }

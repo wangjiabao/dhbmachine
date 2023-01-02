@@ -19,6 +19,9 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationAppAdminLocationList = "/api.App/AdminLocationList"
+const OperationAppAdminRewardList = "/api.App/AdminRewardList"
+const OperationAppAdminUserList = "/api.App/AdminUserList"
 const OperationAppDeposit = "/api.App/Deposit"
 const OperationAppEthAuthorize = "/api.App/EthAuthorize"
 const OperationAppFeeRewardList = "/api.App/FeeRewardList"
@@ -29,6 +32,9 @@ const OperationAppWithdraw = "/api.App/Withdraw"
 const OperationAppWithdrawList = "/api.App/WithdrawList"
 
 type AppHTTPServer interface {
+	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
+	AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error)
+	AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error)
 	Deposit(context.Context, *DepositRequest) (*DepositReply, error)
 	EthAuthorize(context.Context, *EthAuthorizeRequest) (*EthAuthorizeReply, error)
 	FeeRewardList(context.Context, *FeeRewardListRequest) (*FeeRewardListReply, error)
@@ -49,6 +55,9 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/app_server/fee_reward_list", _App_FeeRewardList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/withdraw_list", _App_WithdrawList0_HTTP_Handler(srv))
 	r.POST("/api/app_server/withdraw", _App_Withdraw0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/reward_list", _App_AdminRewardList0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/user_list", _App_AdminUserList0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/location_list", _App_AdminLocationList0_HTTP_Handler(srv))
 }
 
 func _App_EthAuthorize0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
@@ -209,7 +218,67 @@ func _App_Withdraw0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error
 	}
 }
 
+func _App_AdminRewardList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminRewardListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminRewardList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminRewardList(ctx, req.(*AdminRewardListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminRewardListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_AdminUserList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminUserListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminUserList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminUserList(ctx, req.(*AdminUserListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminUserListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_AdminLocationList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminLocationListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminLocationList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminLocationList(ctx, req.(*AdminLocationListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminLocationListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AppHTTPClient interface {
+	AdminLocationList(ctx context.Context, req *AdminLocationListRequest, opts ...http.CallOption) (rsp *AdminLocationListReply, err error)
+	AdminRewardList(ctx context.Context, req *AdminRewardListRequest, opts ...http.CallOption) (rsp *AdminRewardListReply, err error)
+	AdminUserList(ctx context.Context, req *AdminUserListRequest, opts ...http.CallOption) (rsp *AdminUserListReply, err error)
 	Deposit(ctx context.Context, req *DepositRequest, opts ...http.CallOption) (rsp *DepositReply, err error)
 	EthAuthorize(ctx context.Context, req *EthAuthorizeRequest, opts ...http.CallOption) (rsp *EthAuthorizeReply, err error)
 	FeeRewardList(ctx context.Context, req *FeeRewardListRequest, opts ...http.CallOption) (rsp *FeeRewardListReply, err error)
@@ -226,6 +295,45 @@ type AppHTTPClientImpl struct {
 
 func NewAppHTTPClient(client *http.Client) AppHTTPClient {
 	return &AppHTTPClientImpl{client}
+}
+
+func (c *AppHTTPClientImpl) AdminLocationList(ctx context.Context, in *AdminLocationListRequest, opts ...http.CallOption) (*AdminLocationListReply, error) {
+	var out AdminLocationListReply
+	pattern := "/api/admin_dhb/location_list"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminLocationList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) AdminRewardList(ctx context.Context, in *AdminRewardListRequest, opts ...http.CallOption) (*AdminRewardListReply, error) {
+	var out AdminRewardListReply
+	pattern := "/api/admin_dhb/reward_list"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminRewardList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) AdminUserList(ctx context.Context, in *AdminUserListRequest, opts ...http.CallOption) (*AdminUserListReply, error) {
+	var out AdminUserListReply
+	pattern := "/api/admin_dhb/user_list"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminUserList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
 }
 
 func (c *AppHTTPClientImpl) Deposit(ctx context.Context, in *DepositRequest, opts ...http.CallOption) (*DepositReply, error) {

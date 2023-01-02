@@ -13,8 +13,9 @@ import (
 )
 
 type User struct {
-	ID      int64
-	Address string
+	ID        int64
+	Address   string
+	CreatedAt time.Time
 }
 
 type UserInfo struct {
@@ -88,6 +89,8 @@ type UserBalanceRepo interface {
 	Deposit(ctx context.Context, userId int64, amount int64) (int64, error)
 	GetUserBalance(ctx context.Context, userId int64) (*UserBalance, error)
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
+	GetUserRewards(ctx context.Context) ([]*Reward, error)
+	GetUserBalanceByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserBalance, error)
 }
 
 type UserRecommendRepo interface {
@@ -99,12 +102,14 @@ type UserRecommendRepo interface {
 type UserCurrentMonthRecommendRepo interface {
 	GetUserCurrentMonthRecommendByUserId(ctx context.Context, userId int64) ([]*UserCurrentMonthRecommend, error)
 	CreateUserCurrentMonthRecommend(ctx context.Context, u *UserCurrentMonthRecommend) (*UserCurrentMonthRecommend, error)
+	GetUserCurrentMonthRecommendCountByUserIds(ctx context.Context, userIds ...int64) (map[int64]int64, error)
 }
 
 type UserInfoRepo interface {
 	CreateUserInfo(ctx context.Context, u *User) (*UserInfo, error)
 	GetUserInfoByUserId(ctx context.Context, userId int64) (*UserInfo, error)
 	UpdateUserInfo(ctx context.Context, u *UserInfo) (*UserInfo, error)
+	GetUserInfoByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserInfo, error)
 }
 
 type UserRepo interface {
@@ -112,6 +117,8 @@ type UserRepo interface {
 	GetUserByAddresses(ctx context.Context, Addresses ...string) (map[string]*User, error)
 	GetUserByAddress(ctx context.Context, address string) (*User, error)
 	CreateUser(ctx context.Context, user *User) (*User, error)
+	GetUserByUserIds(ctx context.Context, userIds ...int64) (map[int64]*User, error)
+	GetUsers(ctx context.Context) ([]*User, error)
 }
 
 func NewUserUseCase(repo UserRepo, tx Transaction, configRepo ConfigRepo, uiRepo UserInfoRepo, urRepo UserRecommendRepo, locationRepo LocationRepo, userCurrentMonthRecommendRepo UserCurrentMonthRecommendRepo, ubRepo UserBalanceRepo, logger log.Logger) *UserUseCase {
@@ -304,10 +311,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		if nil != rewardLocations {
 			for _, vRewardLocation := range rewardLocations {
 				if myRow == vRewardLocation.Row {
-					rowNum++
+					colNum++
 				}
 				if myCol == vRewardLocation.Col {
-					colNum++
+					rowNum++
 				}
 			}
 		}
@@ -380,6 +387,7 @@ func (uuc *UserUseCase) RewardList(ctx context.Context, req *v1.RewardListReques
 		return res, nil
 	}
 
+	locationIdsMap = make(map[int64]int64, 0)
 	if nil != userRewards {
 		for _, vUserReward := range userRewards {
 			if "location" == vUserReward.Reason && req.Type == vUserReward.LocationType && 1 <= vUserReward.ReasonLocationId {
@@ -480,4 +488,165 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, user *User) (*v1.WithdrawR
 	return &v1.WithdrawReply{
 		Status: "ok",
 	}, nil
+}
+
+func (uuc *UserUseCase) AdminRewardList(ctx context.Context, req *v1.AdminRewardListRequest) (*v1.AdminRewardListReply, error) {
+	var (
+		userRewards []*Reward
+		users       map[int64]*User
+		userIdsMap  map[int64]int64
+		userIds     []int64
+		err         error
+	)
+	res := &v1.AdminRewardListReply{
+		Rewards: make([]*v1.AdminRewardListReply_List, 0),
+	}
+
+	userRewards, err = uuc.ubRepo.GetUserRewards(ctx)
+	if nil != err {
+		return res, nil
+	}
+
+	userIdsMap = make(map[int64]int64, 0)
+	for _, vUserReward := range userRewards {
+		userIdsMap[vUserReward.UserId] = vUserReward.UserId
+	}
+	for _, v := range userIdsMap {
+		userIds = append(userIds, v)
+	}
+
+	users, err = uuc.repo.GetUserByUserIds(ctx, userIds...)
+	if nil != err {
+		return res, nil
+	}
+
+	for _, vUserReward := range userRewards {
+		if _, ok := users[vUserReward.UserId]; !ok {
+			continue
+		}
+
+		res.Rewards = append(res.Rewards, &v1.AdminRewardListReply_List{
+			CreatedAt: vUserReward.CreateAt.Format("2006-01-02 15:04:05"),
+			Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+			Type:      vUserReward.Type,
+			Address:   users[vUserReward.UserId].Address,
+			Reason:    vUserReward.Reason,
+		})
+	}
+
+	return res, nil
+}
+
+func (uuc *UserUseCase) AdminUserList(ctx context.Context, req *v1.AdminUserListRequest) (*v1.AdminUserListReply, error) {
+	var (
+		users                          []*User
+		userIds                        []int64
+		userBalances                   map[int64]*UserBalance
+		userInfos                      map[int64]*UserInfo
+		userCurrentMonthRecommendCount map[int64]int64
+		err                            error
+	)
+	res := &v1.AdminUserListReply{
+		Users: make([]*v1.AdminUserListReply_UserList, 0),
+	}
+
+	users, err = uuc.repo.GetUsers(ctx)
+	if nil != err {
+		return res, nil
+	}
+	for _, vUsers := range users {
+		userIds = append(userIds, vUsers.ID)
+	}
+
+	userBalances, err = uuc.ubRepo.GetUserBalanceByUserIds(ctx, userIds...)
+	if nil != err {
+		return res, nil
+	}
+
+	userInfos, err = uuc.uiRepo.GetUserInfoByUserIds(ctx, userIds...)
+	if nil != err {
+		return res, nil
+	}
+
+	userCurrentMonthRecommendCount, err = uuc.userCurrentMonthRecommendRepo.GetUserCurrentMonthRecommendCountByUserIds(ctx, userIds...)
+
+	for _, v := range users {
+		if _, ok := userBalances[v.ID]; !ok {
+			continue
+		}
+		if _, ok := userInfos[v.ID]; !ok {
+			continue
+		}
+
+		var tmpCount int64
+		if nil != userCurrentMonthRecommendCount {
+			if _, ok := userCurrentMonthRecommendCount[v.ID]; ok {
+				tmpCount = userCurrentMonthRecommendCount[v.ID]
+			}
+		}
+
+		res.Users = append(res.Users, &v1.AdminUserListReply_UserList{
+			CreatedAt:        v.CreatedAt.Format("2006-01-02 15:04:05"),
+			Address:          v.Address,
+			BalanceUsdt:      fmt.Sprintf("%.2f", float64(userBalances[v.ID].BalanceUsdt)/float64(10000000000)),
+			BalanceDhb:       fmt.Sprintf("%.2f", float64(userBalances[v.ID].BalanceDhb)/float64(10000000000)),
+			Vip:              userInfos[v.ID].Vip,
+			MonthRecommend:   tmpCount,
+			HistoryRecommend: userInfos[v.ID].HistoryRecommend,
+		})
+	}
+
+	return res, nil
+}
+
+func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLocationListRequest) (*v1.AdminLocationListReply, error) {
+	var (
+		locations  []*Location
+		userIds    []int64
+		userIdsMap map[int64]int64
+		users      map[int64]*User
+		err        error
+	)
+
+	res := &v1.AdminLocationListReply{
+		Locations: make([]*v1.AdminLocationListReply_LocationList, 0),
+	}
+
+	locations, err = uuc.locationRepo.GetLocations(ctx)
+	if nil != err {
+		return res, nil
+	}
+
+	userIdsMap = make(map[int64]int64, 0)
+	for _, vLocations := range locations {
+		userIdsMap[vLocations.UserId] = vLocations.UserId
+	}
+	for _, v := range userIdsMap {
+		userIds = append(userIds, v)
+	}
+
+	users, err = uuc.repo.GetUserByUserIds(ctx, userIds...)
+	if nil != err {
+		return res, nil
+	}
+
+	for _, v := range locations {
+		if _, ok := users[v.UserId]; !ok {
+			continue
+		}
+
+		res.Locations = append(res.Locations, &v1.AdminLocationListReply_LocationList{
+			CreatedAt:    v.CreatedAt.Format("2006-01-02 15:04:05"),
+			Address:      users[v.UserId].Address,
+			Row:          v.Row,
+			Col:          v.Col,
+			Status:       v.Status,
+			CurrentLevel: v.CurrentLevel,
+			Current:      fmt.Sprintf("%.2f", float64(v.Current)/float64(10000000000)),
+			CurrentMax:   fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(10000000000)),
+		})
+	}
+
+	return res, nil
+
 }
