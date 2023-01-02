@@ -313,7 +313,7 @@ func (a *AppService) FeeRewardList(ctx context.Context, req *v1.FeeRewardListReq
 	})
 }
 
-func (a *AppService) WithdrawList(ctx context.Context, req *v1.UserInfoRequest) (*v1.WithdrawListReply, error) {
+func (a *AppService) WithdrawList(ctx context.Context, req *v1.WithdrawListRequest) (*v1.WithdrawListReply, error) {
 	// 在上下文 context 中取出 claims 对象
 	var userId int64
 	if claims, ok := jwt.FromContext(ctx); ok {

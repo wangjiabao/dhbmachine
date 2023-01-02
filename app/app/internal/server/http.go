@@ -5,7 +5,10 @@ import (
 	v1 "dhb/app/app/api"
 	"dhb/app/app/internal/conf"
 	"dhb/app/app/internal/service"
+	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
+	jwt2 "github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/handlers"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -15,14 +18,14 @@ import (
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(c *conf.Server, app *service.AppService, logger log.Logger) *http.Server {
 	var opts = []http.ServerOption{
-		//http.Middleware(
-		//	recovery.Recovery(),
-		//	selector.Server( // jwt 验证
-		//		jwt.Server(func(token *jwt2.Token) (interface{}, error) {
-		//			return []byte("7d25c9b8d23acb6bc6565270495ed7a0"), nil
-		//		}, jwt.WithSigningMethod(jwt2.SigningMethodHS256)),
-		//	).Match(NewWhiteListMatcher()).Build(),
-		//),
+		http.Middleware(
+			recovery.Recovery(),
+			selector.Server( // jwt 验证
+				jwt.Server(func(token *jwt2.Token) (interface{}, error) {
+					return []byte("7d25c9b8d23acb6bc6565270495ed7a0"), nil
+				}, jwt.WithSigningMethod(jwt2.SigningMethodHS256)),
+			).Match(NewWhiteListMatcher()).Build(),
+		),
 		http.Filter(handlers.CORS(
 			handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
 			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}),
