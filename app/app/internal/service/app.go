@@ -95,8 +95,8 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 	for i := 1; i <= 1; i++ {
 		depositUsdtResult, err = requestEthDepositResult(10, int64(i), "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd")
 		// 辅助查询
-		depositDhbResult, err = requestEthDepositResult(10, int64(i), "0x43647126bECF6e1560D95e115538C4CCB9d92Ebe")
-		tmpDepositDhbResult, err = requestEthDepositResult(10, int64(i+1), "0x43647126bECF6e1560D95e115538C4CCB9d92Ebe")
+		depositDhbResult, err = requestEthDepositResult(10, int64(i), "0x96BD81715c69eE013405B4005Ba97eA1f420fd87")
+		tmpDepositDhbResult, err = requestEthDepositResult(10, int64(i+1), "0x96BD81715c69eE013405B4005Ba97eA1f420fd87")
 		for kTmpDepositDhbResult, v := range tmpDepositDhbResult {
 			if _, ok := tmpDepositDhbResult[kTmpDepositDhbResult]; !ok {
 				depositDhbResult[kTmpDepositDhbResult] = v
@@ -106,7 +106,6 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 		if 0 >= len(depositUsdtResult) {
 			break
 		}
-		fmt.Println(depositUsdtResult, err)
 
 		for hashKey, vDepositResult := range depositUsdtResult { // 主查询
 			hashKeys = append(hashKeys, hashKey)
@@ -127,8 +126,7 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			continue
 		}
 		existEthUserRecords, err = a.ruc.GetEthUserRecordByTxHash(ctx, hashKeys...)
-
-		fmt.Println(userDepositDhbResult, depositUsdtResult, existEthUserRecords)
+		fmt.Println(depositUsers)
 		// 统计开始
 		notExistDepositResult = make([]*biz.EthUserRecord, 0)
 		for _, vDepositUsdtResult := range depositUsdtResult { // 主查usdt
@@ -138,7 +136,7 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 				continue
 			}
 			if _, ok := depositUsers[vDepositUsdtResult.From]; !ok { // 用户不存在
-				fmt.Println(2)
+				fmt.Println(2, vDepositUsdtResult.From)
 				continue
 			}
 			if _, ok := userDepositDhbResult[vDepositUsdtResult.From]; !ok { // 没有dhb的充值记录
@@ -150,11 +148,11 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			)
 			// todo DHB config
 			for _, vUserDepositDhbResult := range userDepositDhbResult[vDepositUsdtResult.From] { // 充值数额类型匹配
-				if "100000000000000000" == vDepositUsdtResult.Value && "100000000000000000" == vUserDepositDhbResult.Value {
+				if "10000000000000000" == vDepositUsdtResult.Value && "10000000000000000" == vUserDepositDhbResult.Value {
 
-				} else if "200000000000000000" == vDepositUsdtResult.Value && "200000000000000000" == vUserDepositDhbResult.Value {
+				} else if "20000000000000000" == vDepositUsdtResult.Value && "20000000000000000" == vUserDepositDhbResult.Value {
 
-				} else if "500000000000000000" == vDepositUsdtResult.Value && "500000000000000000" == vUserDepositDhbResult.Value {
+				} else if "50000000000000000" == vDepositUsdtResult.Value && "50000000000000000" == vUserDepositDhbResult.Value {
 
 				} else {
 					continue

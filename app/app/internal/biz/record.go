@@ -127,13 +127,16 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 		if nil == lastLocation {
 			locationRow = 1
 			locationCol = 1
+			fmt.Println(25, locationRow, locationRow)
 		} else {
 			if 3 > lastLocation.Col {
-				locationCol += 1
+				locationCol = lastLocation.Col + 1
 				locationRow = lastLocation.Row
+				fmt.Println(33, locationCol, locationRow)
 			} else {
 				locationCol = 1
 				locationRow = lastLocation.Row + 1
+				fmt.Println(22, locationRow, locationRow)
 			}
 		}
 

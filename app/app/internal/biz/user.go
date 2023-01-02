@@ -359,7 +359,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		Level2Dhb:                level2Dhb,
 		Level3Dhb:                level3Dhb,
 		Usdt:                     "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
-		Dhb:                      "0x43647126bECF6e1560D95e115538C4CCB9d92Ebe",
+		Dhb:                      "0x96BD81715c69eE013405B4005Ba97eA1f420fd87",
 		Account:                  "0xe865f2e5ff04b8b7952d1c0d9163a91f313b158f",
 	}, nil
 }

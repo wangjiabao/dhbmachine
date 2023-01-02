@@ -237,7 +237,7 @@ func (ui *UserInfoRepo) GetUserInfoByUserId(ctx context.Context, userId int64) (
 // GetUserByAddresses .
 func (u *UserRepo) GetUserByAddresses(ctx context.Context, Addresses ...string) (map[string]*biz.User, error) {
 	var users []*User
-	if err := u.data.db.Table("user").Where("address IN (?)", Addresses).First(&users).Error; err != nil {
+	if err := u.data.db.Table("user").Where("address IN (?)", Addresses).Find(&users).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.NotFound("USER_NOT_FOUND", "user not found")
 		}
