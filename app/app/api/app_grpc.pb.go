@@ -34,6 +34,8 @@ type AppClient interface {
 	AdminUserList(ctx context.Context, in *AdminUserListRequest, opts ...grpc.CallOption) (*AdminUserListReply, error)
 	AdminLocationList(ctx context.Context, in *AdminLocationListRequest, opts ...grpc.CallOption) (*AdminLocationListReply, error)
 	AdminWithdrawList(ctx context.Context, in *AdminWithdrawListRequest, opts ...grpc.CallOption) (*AdminWithdrawListReply, error)
+	AdminWithdraw(ctx context.Context, in *AdminWithdrawRequest, opts ...grpc.CallOption) (*AdminWithdrawReply, error)
+	AdminWithdrawEth(ctx context.Context, in *AdminWithdrawEthRequest, opts ...grpc.CallOption) (*AdminWithdrawEthReply, error)
 }
 
 type appClient struct {
@@ -152,6 +154,24 @@ func (c *appClient) AdminWithdrawList(ctx context.Context, in *AdminWithdrawList
 	return out, nil
 }
 
+func (c *appClient) AdminWithdraw(ctx context.Context, in *AdminWithdrawRequest, opts ...grpc.CallOption) (*AdminWithdrawReply, error) {
+	out := new(AdminWithdrawReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminWithdraw", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) AdminWithdrawEth(ctx context.Context, in *AdminWithdrawEthRequest, opts ...grpc.CallOption) (*AdminWithdrawEthReply, error) {
+	out := new(AdminWithdrawEthReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminWithdrawEth", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServer is the server API for App service.
 // All implementations must embed UnimplementedAppServer
 // for forward compatibility
@@ -168,6 +188,8 @@ type AppServer interface {
 	AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error)
 	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
 	AdminWithdrawList(context.Context, *AdminWithdrawListRequest) (*AdminWithdrawListReply, error)
+	AdminWithdraw(context.Context, *AdminWithdrawRequest) (*AdminWithdrawReply, error)
+	AdminWithdrawEth(context.Context, *AdminWithdrawEthRequest) (*AdminWithdrawEthReply, error)
 	mustEmbedUnimplementedAppServer()
 }
 
@@ -210,6 +232,12 @@ func (UnimplementedAppServer) AdminLocationList(context.Context, *AdminLocationL
 }
 func (UnimplementedAppServer) AdminWithdrawList(context.Context, *AdminWithdrawListRequest) (*AdminWithdrawListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminWithdrawList not implemented")
+}
+func (UnimplementedAppServer) AdminWithdraw(context.Context, *AdminWithdrawRequest) (*AdminWithdrawReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminWithdraw not implemented")
+}
+func (UnimplementedAppServer) AdminWithdrawEth(context.Context, *AdminWithdrawEthRequest) (*AdminWithdrawEthReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminWithdrawEth not implemented")
 }
 func (UnimplementedAppServer) mustEmbedUnimplementedAppServer() {}
 
@@ -440,6 +468,42 @@ func _App_AdminWithdrawList_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _App_AdminWithdraw_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminWithdrawRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminWithdraw(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminWithdraw",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminWithdraw(ctx, req.(*AdminWithdrawRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_AdminWithdrawEth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminWithdrawEthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminWithdrawEth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminWithdrawEth",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminWithdrawEth(ctx, req.(*AdminWithdrawEthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // App_ServiceDesc is the grpc.ServiceDesc for App service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -494,6 +558,14 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminWithdrawList",
 			Handler:    _App_AdminWithdrawList_Handler,
+		},
+		{
+			MethodName: "AdminWithdraw",
+			Handler:    _App_AdminWithdraw_Handler,
+		},
+		{
+			MethodName: "AdminWithdrawEth",
+			Handler:    _App_AdminWithdrawEth_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

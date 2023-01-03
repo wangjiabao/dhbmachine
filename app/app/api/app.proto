@@ -84,6 +84,19 @@ service App {
 			get: "/api/admin_dhb/withdraw_list"
 		};
 	};
+
+	rpc AdminWithdraw (AdminWithdrawRequest) returns (AdminWithdrawReply) {
+		option (google.api.http) = {
+			post: "/api/admin_dhb/withdraw"
+			body: "send_body"
+		};
+	};
+
+	rpc AdminWithdrawEth (AdminWithdrawEthRequest) returns (AdminWithdrawEthReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/withdraw"
+		};
+	};
 }
 
 message EthAuthorizeRequest {
@@ -254,10 +267,29 @@ message AdminWithdrawListReply {
 	repeated List withdraw = 1;
 	message List {
 		string address = 5;
+		int64  id = 7;
 		string created_at = 1;
 		string amount = 2;
 		string relAmount = 6;
 		string type = 3;
 		string status=4;
 	}
+}
+
+message AdminWithdrawRequest {
+	message SendBody{
+		int64 id = 1;
+	}
+
+	SendBody send_body = 1;
+}
+
+message AdminWithdrawReply {
+	string status = 1;
+}
+
+message AdminWithdrawEthRequest {
+}
+
+message AdminWithdrawEthReply {
 }

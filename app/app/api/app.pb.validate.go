@@ -2850,6 +2850,445 @@ var _ interface {
 	ErrorName() string
 } = AdminWithdrawListReplyValidationError{}
 
+// Validate checks the field values on AdminWithdrawRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminWithdrawRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminWithdrawRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminWithdrawRequestMultiError, or nil if none found.
+func (m *AdminWithdrawRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminWithdrawRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetSendBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AdminWithdrawRequestValidationError{
+					field:  "SendBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AdminWithdrawRequestValidationError{
+					field:  "SendBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSendBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AdminWithdrawRequestValidationError{
+				field:  "SendBody",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AdminWithdrawRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminWithdrawRequestMultiError is an error wrapping multiple validation
+// errors returned by AdminWithdrawRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AdminWithdrawRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminWithdrawRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminWithdrawRequestMultiError) AllErrors() []error { return m }
+
+// AdminWithdrawRequestValidationError is the validation error returned by
+// AdminWithdrawRequest.Validate if the designated constraints aren't met.
+type AdminWithdrawRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminWithdrawRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminWithdrawRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminWithdrawRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminWithdrawRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminWithdrawRequestValidationError) ErrorName() string {
+	return "AdminWithdrawRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminWithdrawRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminWithdrawRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminWithdrawRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminWithdrawRequestValidationError{}
+
+// Validate checks the field values on AdminWithdrawReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminWithdrawReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminWithdrawReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminWithdrawReplyMultiError, or nil if none found.
+func (m *AdminWithdrawReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminWithdrawReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Status
+
+	if len(errors) > 0 {
+		return AdminWithdrawReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminWithdrawReplyMultiError is an error wrapping multiple validation errors
+// returned by AdminWithdrawReply.ValidateAll() if the designated constraints
+// aren't met.
+type AdminWithdrawReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminWithdrawReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminWithdrawReplyMultiError) AllErrors() []error { return m }
+
+// AdminWithdrawReplyValidationError is the validation error returned by
+// AdminWithdrawReply.Validate if the designated constraints aren't met.
+type AdminWithdrawReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminWithdrawReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminWithdrawReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminWithdrawReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminWithdrawReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminWithdrawReplyValidationError) ErrorName() string {
+	return "AdminWithdrawReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminWithdrawReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminWithdrawReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminWithdrawReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminWithdrawReplyValidationError{}
+
+// Validate checks the field values on AdminWithdrawEthRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminWithdrawEthRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminWithdrawEthRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminWithdrawEthRequestMultiError, or nil if none found.
+func (m *AdminWithdrawEthRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminWithdrawEthRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AdminWithdrawEthRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminWithdrawEthRequestMultiError is an error wrapping multiple validation
+// errors returned by AdminWithdrawEthRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AdminWithdrawEthRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminWithdrawEthRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminWithdrawEthRequestMultiError) AllErrors() []error { return m }
+
+// AdminWithdrawEthRequestValidationError is the validation error returned by
+// AdminWithdrawEthRequest.Validate if the designated constraints aren't met.
+type AdminWithdrawEthRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminWithdrawEthRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminWithdrawEthRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminWithdrawEthRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminWithdrawEthRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminWithdrawEthRequestValidationError) ErrorName() string {
+	return "AdminWithdrawEthRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminWithdrawEthRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminWithdrawEthRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminWithdrawEthRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminWithdrawEthRequestValidationError{}
+
+// Validate checks the field values on AdminWithdrawEthReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminWithdrawEthReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminWithdrawEthReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminWithdrawEthReplyMultiError, or nil if none found.
+func (m *AdminWithdrawEthReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminWithdrawEthReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AdminWithdrawEthReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminWithdrawEthReplyMultiError is an error wrapping multiple validation
+// errors returned by AdminWithdrawEthReply.ValidateAll() if the designated
+// constraints aren't met.
+type AdminWithdrawEthReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminWithdrawEthReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminWithdrawEthReplyMultiError) AllErrors() []error { return m }
+
+// AdminWithdrawEthReplyValidationError is the validation error returned by
+// AdminWithdrawEthReply.Validate if the designated constraints aren't met.
+type AdminWithdrawEthReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminWithdrawEthReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminWithdrawEthReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminWithdrawEthReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminWithdrawEthReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminWithdrawEthReplyValidationError) ErrorName() string {
+	return "AdminWithdrawEthReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminWithdrawEthReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminWithdrawEthReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminWithdrawEthReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminWithdrawEthReplyValidationError{}
+
 // Validate checks the field values on EthAuthorizeRequest_SendBody with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -3874,6 +4313,8 @@ func (m *AdminWithdrawListReply_List) validate(all bool) error {
 
 	// no validation rules for Address
 
+	// no validation rules for Id
+
 	// no validation rules for CreatedAt
 
 	// no validation rules for Amount
@@ -3964,3 +4405,108 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AdminWithdrawListReply_ListValidationError{}
+
+// Validate checks the field values on AdminWithdrawRequest_SendBody with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminWithdrawRequest_SendBody) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminWithdrawRequest_SendBody with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// AdminWithdrawRequest_SendBodyMultiError, or nil if none found.
+func (m *AdminWithdrawRequest_SendBody) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminWithdrawRequest_SendBody) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return AdminWithdrawRequest_SendBodyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminWithdrawRequest_SendBodyMultiError is an error wrapping multiple
+// validation errors returned by AdminWithdrawRequest_SendBody.ValidateAll()
+// if the designated constraints aren't met.
+type AdminWithdrawRequest_SendBodyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminWithdrawRequest_SendBodyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminWithdrawRequest_SendBodyMultiError) AllErrors() []error { return m }
+
+// AdminWithdrawRequest_SendBodyValidationError is the validation error
+// returned by AdminWithdrawRequest_SendBody.Validate if the designated
+// constraints aren't met.
+type AdminWithdrawRequest_SendBodyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminWithdrawRequest_SendBodyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminWithdrawRequest_SendBodyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminWithdrawRequest_SendBodyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminWithdrawRequest_SendBodyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminWithdrawRequest_SendBodyValidationError) ErrorName() string {
+	return "AdminWithdrawRequest_SendBodyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminWithdrawRequest_SendBodyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminWithdrawRequest_SendBody.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminWithdrawRequest_SendBodyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminWithdrawRequest_SendBodyValidationError{}

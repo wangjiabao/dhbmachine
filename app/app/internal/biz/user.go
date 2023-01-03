@@ -95,16 +95,23 @@ type ConfigRepo interface {
 type UserBalanceRepo interface {
 	CreateUserBalance(ctx context.Context, u *User) (*UserBalance, error)
 	LocationReward(ctx context.Context, userId int64, amount int64, locationId int64, myLocationId int64, locationType string) (int64, error)
+	WithdrawReward(ctx context.Context, userId int64, amount int64, locationId int64, myLocationId int64, locationType string) (int64, error)
 	RecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
+	RecommendWithdrawReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
 	FirstRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
 	Deposit(ctx context.Context, userId int64, amount int64) (int64, error)
 	GetUserBalance(ctx context.Context, userId int64) (*UserBalance, error)
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
 	GetUserRewards(ctx context.Context) ([]*Reward, error)
 	GetUserBalanceByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserBalance, error)
-	Withdraw(ctx context.Context, userId int64, amount int64, coinType string) (*Withdraw, error)
+	GetWithdraw(ctx context.Context, userId int64, amount int64, coinType string) (*Withdraw, error)
+	WithdrawUsdt(ctx context.Context, userId int64, amount int64) error
+	WithdrawDhb(ctx context.Context, userId int64, amount int64) error
 	GetWithdrawByUserId(ctx context.Context, userId int64) ([]*Withdraw, error)
 	GetWithdraws(ctx context.Context) ([]*Withdraw, error)
+	GetWithdrawPassOrRewarded(ctx context.Context) ([]*Withdraw, error)
+	UpdateWithdraw(ctx context.Context, id int64, status string) (*Withdraw, error)
+	GetWithdrawById(ctx context.Context, id int64) (*Withdraw, error)
 }
 
 type UserRecommendRepo interface {
@@ -151,6 +158,10 @@ func NewUserUseCase(repo UserRepo, tx Transaction, configRepo ConfigRepo, uiRepo
 
 func (uuc *UserUseCase) GetUserByAddress(ctx context.Context, Addresses ...string) (map[string]*User, error) {
 	return uuc.repo.GetUserByAddresses(ctx, Addresses...)
+}
+
+func (uuc *UserUseCase) GetDhbConfig(ctx context.Context) ([]*Config, error) {
+	return uuc.configRepo.GetConfigByKeys(ctx, "level1Dhb", "level2Dhb", "level3Dhb")
 }
 
 func (uuc *UserUseCase) GetExistUserByAddressOrCreate(ctx context.Context, u *User, req *v1.EthAuthorizeRequest) (*User, error) {
@@ -537,7 +548,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		}, nil
 	}
 
-	_, err := uuc.ubRepo.Withdraw(ctx, user.ID, amount, req.SendBody.Type)
+	_, err := uuc.ubRepo.GetWithdraw(ctx, user.ID, amount, req.SendBody.Type)
 	if nil != err {
 		return nil, err
 	}
@@ -656,6 +667,10 @@ func (uuc *UserUseCase) AdminUserList(ctx context.Context, req *v1.AdminUserList
 	return res, nil
 }
 
+func (uuc *UserUseCase) GetUserByUserIds(ctx context.Context, userIds ...int64) (map[int64]*User, error) {
+	return uuc.repo.GetUserByUserIds(ctx, userIds...)
+}
+
 func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLocationListRequest) (*v1.AdminLocationListReply, error) {
 	var (
 		locations  []*Location
@@ -708,6 +723,14 @@ func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLoca
 
 }
 
+func (uuc *UserUseCase) GetWithdrawList(ctx context.Context) ([]*Withdraw, error) {
+	return uuc.ubRepo.GetWithdraws(ctx)
+}
+
+func (uuc *UserUseCase) GetWithdrawPassOrRewardedList(ctx context.Context) ([]*Withdraw, error) {
+	return uuc.ubRepo.GetWithdrawPassOrRewarded(ctx)
+}
+
 func (uuc *UserUseCase) AdminWithdrawList(ctx context.Context, req *v1.AdminWithdrawListRequest) (*v1.AdminWithdrawListReply, error) {
 	var (
 		withdraws  []*Withdraw
@@ -744,6 +767,7 @@ func (uuc *UserUseCase) AdminWithdrawList(ctx context.Context, req *v1.AdminWith
 			continue
 		}
 		res.Withdraw = append(res.Withdraw, &v1.AdminWithdrawListReply_List{
+			Id:        v.ID,
 			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
 			Amount:    fmt.Sprintf("%.2f", float64(v.Amount)/float64(10000000000)),
 			Status:    v.Status,
@@ -755,4 +779,159 @@ func (uuc *UserUseCase) AdminWithdrawList(ctx context.Context, req *v1.AdminWith
 
 	return res, nil
 
+}
+
+func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdrawRequest) (*v1.AdminWithdrawReply, error) {
+	var (
+		withdraw                *Withdraw
+		currentValue            int64
+		rewardLocations         []*Location
+		userRecommend           *UserRecommend
+		myLocationLast          *Location
+		myUserRecommendUserId   int64
+		myUserRecommendUserInfo *UserInfo
+		err                     error
+	)
+
+	withdraw, err = uuc.ubRepo.GetWithdrawById(ctx, req.SendBody.Id)
+	if nil != err {
+		return nil, err
+	}
+
+	if "" != withdraw.Status {
+		return &v1.AdminWithdrawReply{
+			Status: "ok",
+		}, nil
+	}
+	currentValue = withdraw.Amount
+
+	if "dhb" == withdraw.Type { // 提现dhb
+		if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+			err = uuc.ubRepo.WithdrawDhb(ctx, withdraw.UserId, currentValue) // 提现
+			if nil != err {
+				return err
+			}
+
+			_, err = uuc.ubRepo.UpdateWithdraw(ctx, withdraw.ID, "pass")
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); nil != err {
+			return nil, err
+		}
+
+		return &v1.AdminWithdrawReply{
+			Status: "ok",
+		}, nil
+	}
+
+	currentValue -= withdraw.Amount / 100 * 5 // 手续费
+	currentValue = currentValue / 100 * 50    // 百分之50重新分配
+
+	// 获取当前用户的占位信息，已经有运行中的跳过
+	myLocationLast, err = uuc.locationRepo.GetMyLocationLast(ctx, withdraw.UserId)
+	if nil == myLocationLast { // 无占位信息
+		return nil, err
+	}
+	// 占位分红人
+	rewardLocations, err = uuc.locationRepo.GetRewardLocationByRowOrCol(ctx, myLocationLast.Row, myLocationLast.Col)
+
+	// 推荐人
+	userRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, withdraw.UserId)
+	if nil != err {
+		return nil, err
+	}
+	if "" != userRecommend.RecommendCode {
+		tmpRecommendUserIds := strings.Split(userRecommend.RecommendCode, "D")
+		if 2 <= len(tmpRecommendUserIds) {
+			myUserRecommendUserId, _ = strconv.ParseInt(tmpRecommendUserIds[len(tmpRecommendUserIds)-1], 10, 64) // 最后一位是直推人
+		}
+	}
+	myUserRecommendUserInfo, err = uuc.uiRepo.GetUserInfoByUserId(ctx, myUserRecommendUserId)
+
+	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+		// 占位分红人分红
+		if nil != rewardLocations {
+			for _, vRewardLocations := range rewardLocations {
+				fmt.Println(vRewardLocations)
+				if "running" != vRewardLocations.Status {
+					continue
+				}
+				if myLocationLast.Row == vRewardLocations.Row && myLocationLast.Col == vRewardLocations.Col { // 跳过自己
+					continue
+				}
+
+				var locationType string
+				var tmpAmount int64
+				if myLocationLast.Row == vRewardLocations.Row { // 同行的人
+					tmpAmount = currentValue / 100 * 5
+					locationType = "row"
+				} else if myLocationLast.Col == vRewardLocations.Col { // 同列的人
+					tmpAmount = currentValue / 100
+					locationType = "col"
+				} else {
+					continue
+				}
+				fmt.Println(111)
+				tmpBalanceAmount := tmpAmount
+				tmpCurrent := vRewardLocations.Current
+				vRewardLocations.Current += tmpAmount
+
+				if vRewardLocations.Current >= vRewardLocations.CurrentMax { // 占位分红人分满停止
+					tmpBalanceAmount = vRewardLocations.CurrentMax - tmpCurrent
+					vRewardLocations.Current = vRewardLocations.CurrentMax
+					vRewardLocations.Status = "stop"
+				}
+
+				_, err = uuc.locationRepo.UpdateLocation(ctx, vRewardLocations) // 分红占位数据修改
+				if nil != err {
+					return err
+				}
+				_, err = uuc.ubRepo.WithdrawReward(ctx, vRewardLocations.UserId, tmpBalanceAmount, myLocationLast.ID, vRewardLocations.ID, locationType) // 分红信息修改
+				if nil != err {
+					return err
+				}
+			}
+		}
+
+		// 推荐人
+		var tmpMyRecommendAmount int64
+		if 5 == myUserRecommendUserInfo.Vip { // 会员等级分红
+			tmpMyRecommendAmount = currentValue / 100 * 20
+		} else if 4 == myUserRecommendUserInfo.Vip {
+			tmpMyRecommendAmount = currentValue / 100 * 16
+		} else if 3 == myUserRecommendUserInfo.Vip {
+			tmpMyRecommendAmount = currentValue / 100 * 12
+		} else if 2 == myUserRecommendUserInfo.Vip {
+			tmpMyRecommendAmount = currentValue / 100 * 8
+		} else if 1 == myUserRecommendUserInfo.Vip {
+			tmpMyRecommendAmount = currentValue / 100 * 4
+		}
+		if 0 < tmpMyRecommendAmount { // 扣除推荐人分红
+			_, err = uuc.ubRepo.RecommendWithdrawReward(ctx, myUserRecommendUserId, tmpMyRecommendAmount, myLocationLast.ID) // 推荐人奖励
+			if nil != err {
+				return err
+			}
+		}
+
+		err = uuc.ubRepo.WithdrawUsdt(ctx, withdraw.UserId, withdraw.Amount) // 提现
+		if nil != err {
+			return err
+		}
+
+		_, err = uuc.ubRepo.UpdateWithdraw(ctx, withdraw.ID, "rewarded")
+		if nil != err {
+			return err
+		}
+
+		return nil
+	}); nil != err {
+		return nil, err
+	}
+
+	return &v1.AdminWithdrawReply{
+		Status: "ok",
+	}, nil
 }
