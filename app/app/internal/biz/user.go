@@ -97,9 +97,13 @@ type UserBalanceRepo interface {
 	LocationReward(ctx context.Context, userId int64, amount int64, locationId int64, myLocationId int64, locationType string) (int64, error)
 	WithdrawReward(ctx context.Context, userId int64, amount int64, locationId int64, myLocationId int64, locationType string) (int64, error)
 	RecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
+	SystemWithdrawReward(ctx context.Context, amount int64, locationId int64) error
+	SystemReward(ctx context.Context, amount int64, locationId int64) error
+	SystemFee(ctx context.Context, amount int64, locationId int64) error
 	RecommendWithdrawReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
 	FirstRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
 	Deposit(ctx context.Context, userId int64, amount int64) (int64, error)
+	DepositDhb(ctx context.Context, userId int64, amount int64) (int64, error)
 	GetUserBalance(ctx context.Context, userId int64) (*UserBalance, error)
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
 	GetUserRewards(ctx context.Context) ([]*Reward, error)
@@ -797,11 +801,13 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 	var (
 		withdraw                *Withdraw
 		currentValue            int64
+		systemAmount            int64
 		rewardLocations         []*Location
 		userRecommend           *UserRecommend
 		myLocationLast          *Location
 		myUserRecommendUserId   int64
 		myUserRecommendUserInfo *UserInfo
+		withdrawAmount          int64
 		err                     error
 	)
 
@@ -839,9 +845,6 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 		}, nil
 	}
 
-	currentValue -= withdraw.Amount / 100 * 5 // 手续费
-	currentValue = currentValue / 100 * 50    // 百分之50重新分配
-
 	// 获取当前用户的占位信息，已经有运行中的跳过
 	myLocationLast, err = uuc.locationRepo.GetMyLocationLast(ctx, withdraw.UserId)
 	if nil == myLocationLast { // 无占位信息
@@ -864,6 +867,17 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 	myUserRecommendUserInfo, err = uuc.uiRepo.GetUserInfoByUserId(ctx, myUserRecommendUserId)
 
 	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+		currentValue -= withdraw.Amount / 100 * 5 // 手续费
+
+		// 手续费记录
+		err = uuc.ubRepo.SystemFee(ctx, withdraw.Amount/100*5, myLocationLast.ID) // 推荐人奖励
+		if nil != err {
+			return err
+		}
+
+		currentValue = currentValue / 100 * 50 // 百分之50重新分配
+		withdrawAmount = currentValue
+		systemAmount = currentValue
 		// 占位分红人分红
 		if nil != rewardLocations {
 			for _, vRewardLocations := range rewardLocations {
@@ -905,6 +919,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 				if nil != err {
 					return err
 				}
+				systemAmount -= tmpBalanceAmount
 			}
 		}
 
@@ -926,9 +941,15 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 			if nil != err {
 				return err
 			}
+			systemAmount -= tmpMyRecommendAmount
 		}
 
-		err = uuc.ubRepo.WithdrawUsdt(ctx, withdraw.UserId, withdraw.Amount) // 提现
+		err = uuc.ubRepo.WithdrawUsdt(ctx, withdraw.UserId, withdrawAmount) // 提现
+		if nil != err {
+			return err
+		}
+
+		err = uuc.ubRepo.SystemWithdrawReward(ctx, systemAmount, myLocationLast.ID) // 推荐人奖励
 		if nil != err {
 			return err
 		}

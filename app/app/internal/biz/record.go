@@ -106,6 +106,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 		if "DHB" == v.CoinType {
 			continue
 		}
+
 		// 获取当前用户的占位信息，已经有运行中的跳过
 		myLocations, err = ruc.locationRepo.GetLocationsByUserId(ctx, v.UserId)
 		if nil == myLocations { // 查询异常跳过本次循环
@@ -231,11 +232,10 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 						return err
 					}
 
+					amount -= tmpBalanceAmount // 占位分红后剩余金额
 				}
 
 			}
-
-			amount = amount / 100 * 50 // 金额直接扣除百分之50
 
 			// 推荐人
 			if nil != myUserRecommendUserInfo {
@@ -284,16 +284,21 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 				} else if 1 == myUserRecommendUserInfo.Vip {
 					tmpMyRecommendAmount = currentValue / 100 * 4
 				}
-				if 0 < tmpMyRecommendAmount {
-					amount -= tmpMyRecommendAmount                                                                                     // 扣除推荐人分红
+				if 0 < tmpMyRecommendAmount { // 扣除推荐人分红
 					_, err = ruc.userBalanceRepo.RecommendReward(ctx, myUserRecommendUserId, tmpMyRecommendAmount, currentLocation.ID) // 推荐人奖励
 					if nil != err {
 						return err
 					}
+					amount -= tmpMyRecommendAmount
 				}
 			}
 
-			_, err = ruc.userBalanceRepo.Deposit(ctx, v.UserId, amount) // 充值
+			_, err = ruc.userBalanceRepo.Deposit(ctx, v.UserId, currentValue) // 充值
+			if nil != err {
+				return err
+			}
+
+			err = ruc.userBalanceRepo.SystemReward(ctx, amount, currentLocation.ID) // 推荐人奖励
 			if nil != err {
 				return err
 			}
@@ -306,6 +311,13 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 				Amount:   v.Amount,
 				CoinType: v.CoinType,
 			})
+			if nil != err {
+				return err
+			}
+
+			dhbAmount, _ := strconv.ParseInt(ethUserRecord[k+1].Amount, 10, 64)
+			dhbAmount /= 100000000                                                             // 转换为系统精度
+			_, err = ruc.userBalanceRepo.DepositDhb(ctx, ethUserRecord[k+1].UserId, dhbAmount) // 充值
 			if nil != err {
 				return err
 			}
