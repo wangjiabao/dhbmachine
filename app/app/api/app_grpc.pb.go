@@ -37,6 +37,7 @@ type AppClient interface {
 	AdminWithdraw(ctx context.Context, in *AdminWithdrawRequest, opts ...grpc.CallOption) (*AdminWithdrawReply, error)
 	AdminWithdrawEth(ctx context.Context, in *AdminWithdrawEthRequest, opts ...grpc.CallOption) (*AdminWithdrawEthReply, error)
 	AdminFee(ctx context.Context, in *AdminFeeRequest, opts ...grpc.CallOption) (*AdminFeeReply, error)
+	AdminAll(ctx context.Context, in *AdminAllRequest, opts ...grpc.CallOption) (*AdminAllReply, error)
 }
 
 type appClient struct {
@@ -182,6 +183,15 @@ func (c *appClient) AdminFee(ctx context.Context, in *AdminFeeRequest, opts ...g
 	return out, nil
 }
 
+func (c *appClient) AdminAll(ctx context.Context, in *AdminAllRequest, opts ...grpc.CallOption) (*AdminAllReply, error) {
+	out := new(AdminAllReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminAll", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServer is the server API for App service.
 // All implementations must embed UnimplementedAppServer
 // for forward compatibility
@@ -201,6 +211,7 @@ type AppServer interface {
 	AdminWithdraw(context.Context, *AdminWithdrawRequest) (*AdminWithdrawReply, error)
 	AdminWithdrawEth(context.Context, *AdminWithdrawEthRequest) (*AdminWithdrawEthReply, error)
 	AdminFee(context.Context, *AdminFeeRequest) (*AdminFeeReply, error)
+	AdminAll(context.Context, *AdminAllRequest) (*AdminAllReply, error)
 	mustEmbedUnimplementedAppServer()
 }
 
@@ -252,6 +263,9 @@ func (UnimplementedAppServer) AdminWithdrawEth(context.Context, *AdminWithdrawEt
 }
 func (UnimplementedAppServer) AdminFee(context.Context, *AdminFeeRequest) (*AdminFeeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminFee not implemented")
+}
+func (UnimplementedAppServer) AdminAll(context.Context, *AdminAllRequest) (*AdminAllReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminAll not implemented")
 }
 func (UnimplementedAppServer) mustEmbedUnimplementedAppServer() {}
 
@@ -536,6 +550,24 @@ func _App_AdminFee_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _App_AdminAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminAllRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminAll",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminAll(ctx, req.(*AdminAllRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // App_ServiceDesc is the grpc.ServiceDesc for App service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -602,6 +634,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminFee",
 			Handler:    _App_AdminFee_Handler,
+		},
+		{
+			MethodName: "AdminAll",
+			Handler:    _App_AdminAll_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

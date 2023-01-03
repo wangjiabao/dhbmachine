@@ -103,6 +103,12 @@ service App {
 			get: "/api/admin_dhb/fee"
 		};
 	};
+
+	rpc AdminAll (AdminAllRequest) returns (AdminAllReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/all"
+		};
+	};
 }
 
 message EthAuthorizeRequest {
@@ -317,4 +323,19 @@ message AdminFeeRequest {
 }
 
 message AdminFeeReply {
+}
+
+message AdminAllRequest {
+}
+
+message AdminAllReply {
+	int64 todayTotalUser = 1;
+	int64 totalUser = 2;
+	string allBalance = 3;
+	string todayLocation = 4;
+	string allLocation = 5;
+	string todayWithdraw = 6;
+	string allWithdraw = 7;
+	string allReward = 8;
+	string allSystemRewardAndFee = 9;
 }

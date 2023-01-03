@@ -3515,6 +3515,224 @@ var _ interface {
 	ErrorName() string
 } = AdminFeeReplyValidationError{}
 
+// Validate checks the field values on AdminAllRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *AdminAllRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminAllRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminAllRequestMultiError, or nil if none found.
+func (m *AdminAllRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminAllRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AdminAllRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminAllRequestMultiError is an error wrapping multiple validation errors
+// returned by AdminAllRequest.ValidateAll() if the designated constraints
+// aren't met.
+type AdminAllRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminAllRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminAllRequestMultiError) AllErrors() []error { return m }
+
+// AdminAllRequestValidationError is the validation error returned by
+// AdminAllRequest.Validate if the designated constraints aren't met.
+type AdminAllRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminAllRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminAllRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminAllRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminAllRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminAllRequestValidationError) ErrorName() string { return "AdminAllRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AdminAllRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminAllRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminAllRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminAllRequestValidationError{}
+
+// Validate checks the field values on AdminAllReply with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *AdminAllReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminAllReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in AdminAllReplyMultiError, or
+// nil if none found.
+func (m *AdminAllReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminAllReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for TodayTotalUser
+
+	// no validation rules for TotalUser
+
+	// no validation rules for AllBalance
+
+	// no validation rules for TodayLocation
+
+	// no validation rules for AllLocation
+
+	// no validation rules for TodayWithdraw
+
+	// no validation rules for AllWithdraw
+
+	// no validation rules for AllReward
+
+	// no validation rules for AllSystemRewardAndFee
+
+	if len(errors) > 0 {
+		return AdminAllReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminAllReplyMultiError is an error wrapping multiple validation errors
+// returned by AdminAllReply.ValidateAll() if the designated constraints
+// aren't met.
+type AdminAllReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminAllReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminAllReplyMultiError) AllErrors() []error { return m }
+
+// AdminAllReplyValidationError is the validation error returned by
+// AdminAllReply.Validate if the designated constraints aren't met.
+type AdminAllReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminAllReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminAllReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminAllReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminAllReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminAllReplyValidationError) ErrorName() string { return "AdminAllReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AdminAllReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminAllReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminAllReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminAllReplyValidationError{}
+
 // Validate checks the field values on EthAuthorizeRequest_SendBody with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

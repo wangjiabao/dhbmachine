@@ -406,6 +406,10 @@ func (a *AppService) AdminFee(ctx context.Context, req *v1.AdminFeeRequest) (*v1
 	return a.uuc.AdminFee(ctx, req)
 }
 
+func (a *AppService) AdminAll(ctx context.Context, req *v1.AdminAllRequest) (*v1.AdminAllReply, error) {
+	return a.uuc.AdminAll(ctx, req)
+}
+
 func (a *AppService) AdminWithdrawEth(ctx context.Context, req *v1.AdminWithdrawEthRequest) (*v1.AdminWithdrawEthReply, error) {
 	var (
 		withdraws    []*biz.Withdraw
