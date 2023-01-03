@@ -631,8 +631,8 @@ func (ub *UserBalanceRepo) WithdrawDhb(ctx context.Context, userId int64, amount
 	return nil
 }
 
-// GetWithdraw .
-func (ub *UserBalanceRepo) GetWithdraw(ctx context.Context, userId int64, amount int64, coinType string) (*biz.Withdraw, error) {
+// GreateWithdraw .
+func (ub *UserBalanceRepo) GreateWithdraw(ctx context.Context, userId int64, amount int64, coinType string) (*biz.Withdraw, error) {
 	var withdraw Withdraw
 	withdraw.UserId = userId
 	withdraw.Amount = amount

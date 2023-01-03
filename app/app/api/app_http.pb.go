@@ -66,7 +66,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/admin_dhb/location_list", _App_AdminLocationList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/withdraw_list", _App_AdminWithdrawList0_HTTP_Handler(srv))
 	r.POST("/api/admin_dhb/withdraw", _App_AdminWithdraw0_HTTP_Handler(srv))
-	r.GET("/api/admin_dhb/withdraw", _App_AdminWithdrawEth0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/withdraw_eth", _App_AdminWithdrawEth0_HTTP_Handler(srv))
 }
 
 func _App_EthAuthorize0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
@@ -423,7 +423,7 @@ func (c *AppHTTPClientImpl) AdminWithdraw(ctx context.Context, in *AdminWithdraw
 
 func (c *AppHTTPClientImpl) AdminWithdrawEth(ctx context.Context, in *AdminWithdrawEthRequest, opts ...http.CallOption) (*AdminWithdrawEthReply, error) {
 	var out AdminWithdrawEthReply
-	pattern := "/api/admin_dhb/withdraw"
+	pattern := "/api/admin_dhb/withdraw_eth"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppAdminWithdrawEth))
 	opts = append(opts, http.PathTemplate(pattern))

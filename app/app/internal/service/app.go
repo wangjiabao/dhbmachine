@@ -404,11 +404,12 @@ func (a *AppService) AdminWithdraw(ctx context.Context, req *v1.AdminWithdrawReq
 
 func (a *AppService) AdminWithdrawEth(ctx context.Context, req *v1.AdminWithdrawEthRequest) (*v1.AdminWithdrawEthReply, error) {
 	var (
-		withdraws  []*biz.Withdraw
-		userIds    []int64
-		userIdsMap map[int64]int64
-		users      map[int64]*biz.User
-		err        error
+		withdraws    []*biz.Withdraw
+		userIds      []int64
+		userIdsMap   map[int64]int64
+		users        map[int64]*biz.User
+		tokenAddress string
+		err          error
 	)
 	withdraws, err = a.uuc.GetWithdrawPassOrRewardedList(ctx)
 	if nil != err {
@@ -433,13 +434,29 @@ func (a *AppService) AdminWithdrawEth(ctx context.Context, req *v1.AdminWithdraw
 			continue
 		}
 
+		if "dhb" == v.Type {
+			tokenAddress = "0x96BD81715c69eE013405B4005Ba97eA1f420fd87"
+		} else if "usdt" == v.Type {
+			tokenAddress = "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd"
+		} else {
+			continue
+		}
+
+		_, err = a.uuc.UpdateWithdrawDoing(ctx, v.ID)
+		if nil != err {
+			continue
+		}
+
+		withDrawAmount := strconv.FormatInt(v.Amount, 10) + "00000000" // 补八个0.系统基础1是10个0
+
 		for i := 0; i < 3; i++ {
 			//fmt.Println(11111, user.ToAddress, v.Amount, balanceInt)
 			//_, _, err = toTokenNew(user.ToAddressPrivateKey, "0xe865f2e5ff04B8b7952d1C0d9163A91F313b158f", addressEth.Balance)
 			//_, _, err = toToken(user.ToAddressPrivateKey, "0xe865f2e5ff04B8b7952d1C0d9163A91F313b158f", balanceInt)
-			_, _, err = toToken("448e5b9e2fc5ab0fd67a074e95f10cd8fba2048c45b936320f2fa48abac6848b", users[v.UserId].Address, v.Amount)
+			_, _, err = toToken("448e5b9e2fc5ab0fd67a074e95f10cd8fba2048c45b936320f2fa48abac6848b", users[v.UserId].Address, withDrawAmount, tokenAddress)
 			fmt.Println(3333, err)
 			if err == nil {
+				_, err = a.uuc.UpdateWithdrawSuccess(ctx, v.ID)
 				time.Sleep(6 * time.Second)
 				break
 			} else if "insufficient funds for gas * price + value" == err.Error() {
@@ -449,6 +466,8 @@ func (a *AppService) AdminWithdrawEth(ctx context.Context, req *v1.AdminWithdraw
 					continue
 				}
 				time.Sleep(6 * time.Second)
+			} else {
+				time.Sleep(10 * time.Second)
 			}
 		}
 
@@ -477,8 +496,8 @@ func (a *AppService) AdminWithdrawEth(ctx context.Context, req *v1.AdminWithdraw
 }
 
 func toBnB(toAccount string, fromPrivateKey string, toAmount int64) (bool, string, error) {
-	//client, err := ethclient.Dial("https://data-seed-prebsc-1-s3.binance.org:8545/")
-	client, err := ethclient.Dial("https://bsc-dataseed.binance.org/")
+	client, err := ethclient.Dial("https://data-seed-prebsc-1-s3.binance.org:8545/")
+	//client, err := ethclient.Dial("https://bsc-dataseed.binance.org/")
 	if err != nil {
 		return false, "", err
 	}
@@ -523,9 +542,9 @@ func toBnB(toAccount string, fromPrivateKey string, toAmount int64) (bool, strin
 	return true, signedTx.Hash().Hex(), nil
 }
 
-func toToken(userPrivateKey string, toAccount string, toAmount int64) (bool, string, error) {
-	//client, err := ethclient.Dial("https://data-seed-prebsc-1-s3.binance.org:8545/")
-	client, err := ethclient.Dial("https://bsc-dataseed.binance.org/")
+func toToken(userPrivateKey string, toAccount string, withdrawAmount string, withdrawTokenAddress string) (bool, string, error) {
+	client, err := ethclient.Dial("https://data-seed-prebsc-1-s3.binance.org:8545/")
+	//client, err := ethclient.Dial("https://bsc-dataseed.binance.org/")
 	if err != nil {
 		return false, "", err
 	}
@@ -552,8 +571,9 @@ func toToken(userPrivateKey string, toAccount string, toAmount int64) (bool, str
 	toAddress := common.HexToAddress(toAccount)
 	// 0x337610d27c682E347C9cD60BD4b3b107C9d34dDd
 	// 0x55d398326f99059fF775485246999027B3197955
-	tokenAddress := common.HexToAddress("0x55d398326f99059fF775485246999027B3197955")
-	//tokenAddress := common.HexToAddress("0x337610d27c682E347C9cD60BD4b3b107C9d34dDd")
+	// tokenAddress := common.HexToAddress("0x55d398326f99059fF775485246999027B3197955")
+	// tokenAddress := common.HexToAddress("0x337610d27c682E347C9cD60BD4b3b107C9d34dDd")
+	tokenAddress := common.HexToAddress(withdrawTokenAddress)
 	transferFnSignature := []byte("transfer(address,uint256)")
 	hash := sha3.NewKeccak256()
 	hash.Write(transferFnSignature)
@@ -562,9 +582,8 @@ func toToken(userPrivateKey string, toAccount string, toAmount int64) (bool, str
 	paddedAddress := common.LeftPadBytes(toAddress.Bytes(), 32)
 
 	amount := new(big.Int)
-	withDrawAmount := toAmount
-	fmt.Println(withDrawAmount)
-	amount.SetString(strconv.FormatInt(withDrawAmount, 10)+"000000000000000000", 10) // 提现的金额恢复
+
+	amount.SetString(withdrawAmount, 10) // 提现的金额恢复
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
 	var data []byte
@@ -593,8 +612,8 @@ func toToken(userPrivateKey string, toAccount string, toAmount int64) (bool, str
 }
 
 func BnbBalance(bnbAccount string) string {
-	//client, err := ethclient.Dial("https://data-seed-prebsc-1-s3.binance.org:8545/")
-	client, err := ethclient.Dial("https://bsc-dataseed.binance.org/")
+	client, err := ethclient.Dial("https://data-seed-prebsc-1-s3.binance.org:8545/")
+	//client, err := ethclient.Dial("https://bsc-dataseed.binance.org/")
 	if err != nil {
 		log.Fatal(err)
 	}

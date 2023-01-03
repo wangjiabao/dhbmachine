@@ -104,7 +104,7 @@ type UserBalanceRepo interface {
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
 	GetUserRewards(ctx context.Context) ([]*Reward, error)
 	GetUserBalanceByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserBalance, error)
-	GetWithdraw(ctx context.Context, userId int64, amount int64, coinType string) (*Withdraw, error)
+	GreateWithdraw(ctx context.Context, userId int64, amount int64, coinType string) (*Withdraw, error)
 	WithdrawUsdt(ctx context.Context, userId int64, amount int64) error
 	WithdrawDhb(ctx context.Context, userId int64, amount int64) error
 	GetWithdrawByUserId(ctx context.Context, userId int64) ([]*Withdraw, error)
@@ -274,6 +274,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	if nil != err {
 		return nil, err
 	}
+	status = "stop"
 	for _, v := range locations {
 		if "running" == v.Status {
 			status = "running"
@@ -548,7 +549,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		}, nil
 	}
 
-	_, err := uuc.ubRepo.GetWithdraw(ctx, user.ID, amount, req.SendBody.Type)
+	_, err := uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, req.SendBody.Type)
 	if nil != err {
 		return nil, err
 	}
@@ -729,6 +730,14 @@ func (uuc *UserUseCase) GetWithdrawList(ctx context.Context) ([]*Withdraw, error
 
 func (uuc *UserUseCase) GetWithdrawPassOrRewardedList(ctx context.Context) ([]*Withdraw, error) {
 	return uuc.ubRepo.GetWithdrawPassOrRewarded(ctx)
+}
+
+func (uuc *UserUseCase) UpdateWithdrawDoing(ctx context.Context, id int64) (*Withdraw, error) {
+	return uuc.ubRepo.UpdateWithdraw(ctx, id, "doing")
+}
+
+func (uuc *UserUseCase) UpdateWithdrawSuccess(ctx context.Context, id int64) (*Withdraw, error) {
+	return uuc.ubRepo.UpdateWithdraw(ctx, id, "success")
 }
 
 func (uuc *UserUseCase) AdminWithdrawList(ctx context.Context, req *v1.AdminWithdrawListRequest) (*v1.AdminWithdrawListReply, error) {
