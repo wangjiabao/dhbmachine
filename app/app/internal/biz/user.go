@@ -336,6 +336,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		rewardLocations, err = uuc.locationRepo.GetRewardLocationByRowOrCol(ctx, myRow, myCol)
 		if nil != rewardLocations {
 			for _, vRewardLocation := range rewardLocations {
+				if myRow == vRewardLocation.Row && myCol == vRewardLocation.Col { // 跳过自己
+					continue
+				}
 				if myRow == vRewardLocation.Row {
 					colNum++
 				}

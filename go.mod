@@ -1,6 +1,6 @@
 module dhb
 
-go 1.17
+go 1.16
 
 require (
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
@@ -53,3 +53,5 @@ require (
 	golang.org/x/text v0.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace golang.org/x/sys => golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab
