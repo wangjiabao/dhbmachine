@@ -55,7 +55,7 @@ type LocationRepo interface {
 	GetRewardLocationByRowOrCol(ctx context.Context, row int64, col int64) ([]*Location, error)
 	GetRewardLocationByIds(ctx context.Context, ids ...int64) (map[int64]*Location, error)
 	UpdateLocation(ctx context.Context, location *Location) (*Location, error)
-	GetLocations(ctx context.Context) ([]*Location, error)
+	GetLocations(ctx context.Context, b *Pagination, userId int64) ([]*Location, error, int64)
 }
 
 func NewRecordUseCase(

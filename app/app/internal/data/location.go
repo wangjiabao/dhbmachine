@@ -232,15 +232,24 @@ func (lr *LocationRepo) GetRewardLocationByIds(ctx context.Context, ids ...int64
 }
 
 // GetLocations .
-func (lr *LocationRepo) GetLocations(ctx context.Context) ([]*biz.Location, error) {
-	var locations []*Location
-	if err := lr.data.db.Table("location").
-		Find(&locations).Error; err != nil {
+func (lr *LocationRepo) GetLocations(ctx context.Context, b *biz.Pagination, userId int64) ([]*biz.Location, error, int64) {
+	var (
+		locations []*Location
+		count     int64
+	)
+	instance := lr.data.db.Table("location")
+
+	if 0 < userId {
+		instance = instance.Where("user_id=?", userId)
+	}
+
+	instance = instance.Count(&count)
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Find(&locations).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
+			return nil, errors.NotFound("LOCATION_NOT_FOUND", "location not found"), 0
 		}
 
-		return nil, errors.New(500, "LOCATION ERROR", err.Error())
+		return nil, errors.New(500, "LOCATION ERROR", err.Error()), 0
 	}
 
 	res := make([]*biz.Location, 0)
@@ -258,5 +267,5 @@ func (lr *LocationRepo) GetLocations(ctx context.Context) ([]*biz.Location, erro
 		})
 	}
 
-	return res, nil
+	return res, nil, count
 }

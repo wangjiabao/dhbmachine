@@ -613,6 +613,8 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for Total
 
+	// no validation rules for FeeTotal
+
 	// no validation rules for Row
 
 	// no validation rules for Col
@@ -1920,6 +1922,10 @@ func (m *AdminRewardListRequest) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Page
+
+	// no validation rules for Address
+
 	if len(errors) > 0 {
 		return AdminRewardListRequestMultiError(errors)
 	}
@@ -2056,6 +2062,8 @@ func (m *AdminRewardListReply) validate(all bool) error {
 
 	}
 
+	// no validation rules for Count
+
 	if len(errors) > 0 {
 		return AdminRewardListReplyMultiError(errors)
 	}
@@ -2157,6 +2165,10 @@ func (m *AdminUserListRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for Page
+
+	// no validation rules for Address
 
 	if len(errors) > 0 {
 		return AdminUserListRequestMultiError(errors)
@@ -2294,6 +2306,8 @@ func (m *AdminUserListReply) validate(all bool) error {
 
 	}
 
+	// no validation rules for Count
+
 	if len(errors) > 0 {
 		return AdminUserListReplyMultiError(errors)
 	}
@@ -2395,6 +2409,10 @@ func (m *AdminLocationListRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for Page
+
+	// no validation rules for Address
 
 	if len(errors) > 0 {
 		return AdminLocationListRequestMultiError(errors)
@@ -2532,6 +2550,8 @@ func (m *AdminLocationListReply) validate(all bool) error {
 
 	}
 
+	// no validation rules for Count
+
 	if len(errors) > 0 {
 		return AdminLocationListReplyMultiError(errors)
 	}
@@ -2633,6 +2653,10 @@ func (m *AdminWithdrawListRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for Page
+
+	// no validation rules for Address
 
 	if len(errors) > 0 {
 		return AdminWithdrawListRequestMultiError(errors)
@@ -2769,6 +2793,8 @@ func (m *AdminWithdrawListReply) validate(all bool) error {
 		}
 
 	}
+
+	// no validation rules for Count
 
 	if len(errors) > 0 {
 		return AdminWithdrawListReplyMultiError(errors)

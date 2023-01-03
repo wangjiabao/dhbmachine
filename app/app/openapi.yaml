@@ -11,6 +11,16 @@ paths:
             tags:
                 - App
             operationId: App_AdminLocationList
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int64
+                - name: address
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -29,6 +39,16 @@ paths:
             tags:
                 - App
             operationId: App_AdminRewardList
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int64
+                - name: address
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -47,6 +67,16 @@ paths:
             tags:
                 - App
             operationId: App_AdminUserList
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int64
+                - name: address
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -107,6 +137,16 @@ paths:
             tags:
                 - App
             operationId: App_AdminWithdrawList
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int64
+                - name: address
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -295,6 +335,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/AdminLocationListReply_LocationList'
+                count:
+                    type: integer
+                    format: int64
         AdminLocationListReply_LocationList:
             type: object
             properties:
@@ -324,6 +367,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/AdminRewardListReply_List'
+                count:
+                    type: integer
+                    format: int64
         AdminRewardListReply_List:
             type: object
             properties:
@@ -344,6 +390,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/AdminUserListReply_UserList'
+                count:
+                    type: integer
+                    format: int64
         AdminUserListReply_UserList:
             type: object
             properties:
@@ -374,6 +423,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/AdminWithdrawListReply_List'
+                count:
+                    type: integer
+                    format: int64
         AdminWithdrawListReply_List:
             type: object
             properties:
@@ -519,6 +571,8 @@ components:
                     type: integer
                     format: int64
                 total:
+                    type: string
+                feeTotal:
                     type: string
                 row:
                     type: integer

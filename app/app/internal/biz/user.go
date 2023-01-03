@@ -88,6 +88,11 @@ type Reward struct {
 	CreatedAt        time.Time
 }
 
+type Pagination struct {
+	PageNum  int
+	PageSize int
+}
+
 type ConfigRepo interface {
 	GetConfigByKeys(ctx context.Context, keys ...string) ([]*Config, error)
 }
@@ -106,13 +111,13 @@ type UserBalanceRepo interface {
 	DepositDhb(ctx context.Context, userId int64, amount int64) (int64, error)
 	GetUserBalance(ctx context.Context, userId int64) (*UserBalance, error)
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
-	GetUserRewards(ctx context.Context) ([]*Reward, error)
+	GetUserRewards(ctx context.Context, b *Pagination, userId int64) ([]*Reward, error, int64)
 	GetUserBalanceByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserBalance, error)
 	GreateWithdraw(ctx context.Context, userId int64, amount int64, coinType string) (*Withdraw, error)
 	WithdrawUsdt(ctx context.Context, userId int64, amount int64) error
 	WithdrawDhb(ctx context.Context, userId int64, amount int64) error
 	GetWithdrawByUserId(ctx context.Context, userId int64) ([]*Withdraw, error)
-	GetWithdraws(ctx context.Context) ([]*Withdraw, error)
+	GetWithdraws(ctx context.Context, b *Pagination, userId int64) ([]*Withdraw, error, int64)
 	GetWithdrawPassOrRewarded(ctx context.Context) ([]*Withdraw, error)
 	UpdateWithdraw(ctx context.Context, id int64, status string) (*Withdraw, error)
 	GetWithdrawById(ctx context.Context, id int64) (*Withdraw, error)
@@ -143,7 +148,7 @@ type UserRepo interface {
 	GetUserByAddress(ctx context.Context, address string) (*User, error)
 	CreateUser(ctx context.Context, user *User) (*User, error)
 	GetUserByUserIds(ctx context.Context, userIds ...int64) (map[int64]*User, error)
-	GetUsers(ctx context.Context) ([]*User, error)
+	GetUsers(ctx context.Context, b *Pagination, address string) ([]*User, error, int64)
 }
 
 func NewUserUseCase(repo UserRepo, tx Transaction, configRepo ConfigRepo, uiRepo UserInfoRepo, urRepo UserRecommendRepo, locationRepo LocationRepo, userCurrentMonthRecommendRepo UserCurrentMonthRecommendRepo, ubRepo UserBalanceRepo, logger log.Logger) *UserUseCase {
@@ -252,6 +257,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		recommendTeamNum           int64
 		recommendTotal             int64
 		locationTotal              int64
+		feeTotal                   int64
 		myCode                     string
 		inviteUserAddress          string
 		amount                     string
@@ -331,6 +337,8 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				recommendTotal += vUserReward.Amount
 			} else if "location" == vUserReward.Reason {
 				locationTotal += vUserReward.Amount
+			} else if "fee" == vUserReward.Reason {
+				feeTotal += vUserReward.Amount
 			}
 		}
 	}
@@ -394,6 +402,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		Col:                      colNum,
 		CurrentMonthRecommendNum: currentMonthRecommendNum,
 		RecommendTotal:           fmt.Sprintf("%.2f", float64(recommendTotal)/float64(10000000000)),
+		FeeTotal:                 fmt.Sprintf("%.2f", float64(feeTotal)/float64(10000000000)),
 		LocationTotal:            fmt.Sprintf("%.2f", float64(locationTotal)/float64(10000000000)),
 		Level1Dhb:                level1Dhb,
 		Level2Dhb:                level2Dhb,
@@ -568,20 +577,36 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 
 func (uuc *UserUseCase) AdminRewardList(ctx context.Context, req *v1.AdminRewardListRequest) (*v1.AdminRewardListReply, error) {
 	var (
+		userSearch  *User
+		userId      int64 = 0
 		userRewards []*Reward
 		users       map[int64]*User
 		userIdsMap  map[int64]int64
 		userIds     []int64
 		err         error
+		count       int64
 	)
 	res := &v1.AdminRewardListReply{
 		Rewards: make([]*v1.AdminRewardListReply_List, 0),
 	}
 
-	userRewards, err = uuc.ubRepo.GetUserRewards(ctx)
+	// 地址查询
+	if "" != req.Address {
+		userSearch, err = uuc.repo.GetUserByAddress(ctx, req.Address)
+		if nil != err {
+			return res, nil
+		}
+		userId = userSearch.ID
+	}
+
+	userRewards, err, count = uuc.ubRepo.GetUserRewards(ctx, &Pagination{
+		PageNum:  int(req.Page),
+		PageSize: 10,
+	}, userId)
 	if nil != err {
 		return res, nil
 	}
+	res.Count = count
 
 	userIdsMap = make(map[int64]int64, 0)
 	for _, vUserReward := range userRewards {
@@ -620,16 +645,23 @@ func (uuc *UserUseCase) AdminUserList(ctx context.Context, req *v1.AdminUserList
 		userBalances                   map[int64]*UserBalance
 		userInfos                      map[int64]*UserInfo
 		userCurrentMonthRecommendCount map[int64]int64
+		count                          int64
 		err                            error
 	)
+
 	res := &v1.AdminUserListReply{
 		Users: make([]*v1.AdminUserListReply_UserList, 0),
 	}
 
-	users, err = uuc.repo.GetUsers(ctx)
+	users, err, count = uuc.repo.GetUsers(ctx, &Pagination{
+		PageNum:  int(req.Page),
+		PageSize: 10,
+	}, req.Address)
 	if nil != err {
 		return res, nil
 	}
+	res.Count = count
+
 	for _, vUsers := range users {
 		userIds = append(userIds, vUsers.ID)
 	}
@@ -682,9 +714,12 @@ func (uuc *UserUseCase) GetUserByUserIds(ctx context.Context, userIds ...int64) 
 func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLocationListRequest) (*v1.AdminLocationListReply, error) {
 	var (
 		locations  []*Location
+		userSearch *User
+		userId     int64
 		userIds    []int64
 		userIdsMap map[int64]int64
 		users      map[int64]*User
+		count      int64
 		err        error
 	)
 
@@ -692,10 +727,23 @@ func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLoca
 		Locations: make([]*v1.AdminLocationListReply_LocationList, 0),
 	}
 
-	locations, err = uuc.locationRepo.GetLocations(ctx)
+	// 地址查询
+	if "" != req.Address {
+		userSearch, err = uuc.repo.GetUserByAddress(ctx, req.Address)
+		if nil != err {
+			return res, nil
+		}
+		userId = userSearch.ID
+	}
+
+	locations, err, count = uuc.locationRepo.GetLocations(ctx, &Pagination{
+		PageNum:  int(req.Page),
+		PageSize: 10,
+	}, userId)
 	if nil != err {
 		return res, nil
 	}
+	res.Count = count
 
 	userIdsMap = make(map[int64]int64, 0)
 	for _, vLocations := range locations {
@@ -731,10 +779,6 @@ func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLoca
 
 }
 
-func (uuc *UserUseCase) GetWithdrawList(ctx context.Context) ([]*Withdraw, error) {
-	return uuc.ubRepo.GetWithdraws(ctx)
-}
-
 func (uuc *UserUseCase) GetWithdrawPassOrRewardedList(ctx context.Context) ([]*Withdraw, error) {
 	return uuc.ubRepo.GetWithdrawPassOrRewarded(ctx)
 }
@@ -751,8 +795,11 @@ func (uuc *UserUseCase) AdminWithdrawList(ctx context.Context, req *v1.AdminWith
 	var (
 		withdraws  []*Withdraw
 		userIds    []int64
+		userSearch *User
+		userId     int64
 		userIdsMap map[int64]int64
 		users      map[int64]*User
+		count      int64
 		err        error
 	)
 
@@ -760,10 +807,23 @@ func (uuc *UserUseCase) AdminWithdrawList(ctx context.Context, req *v1.AdminWith
 		Withdraw: make([]*v1.AdminWithdrawListReply_List, 0),
 	}
 
-	withdraws, err = uuc.ubRepo.GetWithdraws(ctx)
+	// 地址查询
+	if "" != req.Address {
+		userSearch, err = uuc.repo.GetUserByAddress(ctx, req.Address)
+		if nil != err {
+			return res, nil
+		}
+		userId = userSearch.ID
+	}
+
+	withdraws, err, count = uuc.ubRepo.GetWithdraws(ctx, &Pagination{
+		PageNum:  int(req.Page),
+		PageSize: 10,
+	}, userId)
 	if nil != err {
 		return res, err
 	}
+	res.Count = count
 
 	userIdsMap = make(map[int64]int64, 0)
 	for _, vWithdraws := range withdraws {

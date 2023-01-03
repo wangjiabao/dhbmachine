@@ -135,6 +135,7 @@ message UserInfoReply {
 	int64 recommendNum = 9;
 	int64 recommendTeamNum = 10;
 	string total = 11;
+	string feeTotal = 23;
 	int64 row = 12;
 	int64 col = 13;
 	int64 currentMonthRecommendNum = 14;
@@ -214,6 +215,8 @@ message WithdrawReply {
 }
 
 message AdminRewardListRequest {
+	int64 page = 1;
+	string address = 2;
 }
 
 message AdminRewardListReply {
@@ -225,9 +228,12 @@ message AdminRewardListReply {
 		string address = 5;
 		string reason = 6;
 	}
+	 int64 count = 2;
 }
 
 message AdminUserListRequest {
+	int64 page = 1;
+	string address = 2;
 }
 
 message AdminUserListReply {
@@ -241,9 +247,12 @@ message AdminUserListReply {
 		int64 monthRecommend = 7;
 		int64 historyRecommend = 6;
 	}
+	int64 count = 2;
 }
 
 message AdminLocationListRequest {
+	int64 page = 1;
+	string address = 2;
 }
 
 message AdminLocationListReply {
@@ -258,9 +267,12 @@ message AdminLocationListReply {
 		string current = 7;
 		string currentMax = 8;
 	}
+	int64 count = 2;
 }
 
 message AdminWithdrawListRequest {
+	int64 page = 1;
+	string address = 2;
 }
 
 message AdminWithdrawListReply {
@@ -274,6 +286,7 @@ message AdminWithdrawListReply {
 		string type = 3;
 		string status=4;
 	}
+	int64 count = 2;
 }
 
 message AdminWithdrawRequest {

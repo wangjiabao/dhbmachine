@@ -289,14 +289,24 @@ func (u *UserRepo) GetUserByUserIds(ctx context.Context, userIds ...int64) (map[
 }
 
 // GetUsers .
-func (u *UserRepo) GetUsers(ctx context.Context) ([]*biz.User, error) {
-	var users []*User
-	if err := u.data.db.Table("user").Find(&users).Error; err != nil {
+func (u *UserRepo) GetUsers(ctx context.Context, b *biz.Pagination, address string) ([]*biz.User, error, int64) {
+	var (
+		users []*User
+		count int64
+	)
+	instance := u.data.db.Table("user")
+
+	if "" != address {
+		instance = instance.Where("address=?", address)
+	}
+
+	instance = instance.Count(&count)
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Find(&users).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.NotFound("USER_NOT_FOUND", "user not found")
+			return nil, errors.NotFound("USER_NOT_FOUND", "user not found"), 0
 		}
 
-		return nil, errors.New(500, "USER ERROR", err.Error())
+		return nil, errors.New(500, "USER ERROR", err.Error()), 0
 	}
 
 	res := make([]*biz.User, 0)
@@ -307,7 +317,7 @@ func (u *UserRepo) GetUsers(ctx context.Context) ([]*biz.User, error) {
 			CreatedAt: item.CreatedAt,
 		})
 	}
-	return res, nil
+	return res, nil, count
 }
 
 // CreateUser .
@@ -752,15 +762,26 @@ func (ub *UserBalanceRepo) GetWithdrawById(ctx context.Context, id int64) (*biz.
 }
 
 // GetWithdraws .
-func (ub *UserBalanceRepo) GetWithdraws(ctx context.Context) ([]*biz.Withdraw, error) {
-	var withdraws []*Withdraw
+func (ub *UserBalanceRepo) GetWithdraws(ctx context.Context, b *biz.Pagination, userId int64) ([]*biz.Withdraw, error, int64) {
+	var (
+		withdraws []*Withdraw
+		count     int64
+	)
 	res := make([]*biz.Withdraw, 0)
-	if err := ub.data.db.Table("withdraw").Find(&withdraws).Error; err != nil {
+
+	instance := ub.data.db.Table("withdraw")
+
+	if 0 < userId {
+		instance = instance.Where("user_id=?", userId)
+	}
+
+	instance = instance.Count(&count)
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Find(&withdraws).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return res, errors.NotFound("WITHDRAW_NOT_FOUND", "withdraw not found")
+			return res, errors.NotFound("WITHDRAW_NOT_FOUND", "withdraw not found"), 0
 		}
 
-		return nil, errors.New(500, "WITHDRAW ERROR", err.Error())
+		return nil, errors.New(500, "WITHDRAW ERROR", err.Error()), 0
 	}
 
 	for _, withdraw := range withdraws {
@@ -775,7 +796,7 @@ func (ub *UserBalanceRepo) GetWithdraws(ctx context.Context) ([]*biz.Withdraw, e
 			CreatedAt:       withdraw.CreatedAt,
 		})
 	}
-	return res, nil
+	return res, nil, count
 }
 
 // GetWithdrawPassOrRewarded .
@@ -1038,15 +1059,26 @@ func (ub *UserBalanceRepo) GetUserRewardByUserId(ctx context.Context, userId int
 }
 
 // GetUserRewards .
-func (ub *UserBalanceRepo) GetUserRewards(ctx context.Context) ([]*biz.Reward, error) {
-	var rewards []*Reward
+func (ub *UserBalanceRepo) GetUserRewards(ctx context.Context, b *biz.Pagination, userId int64) ([]*biz.Reward, error, int64) {
+	var (
+		rewards []*Reward
+		count   int64
+	)
 	res := make([]*biz.Reward, 0)
-	if err := ub.data.db.Table("reward").Find(&rewards).Error; err != nil {
+
+	instance := ub.data.db.Table("reward")
+
+	if 0 < userId {
+		instance = instance.Where("user_id=?", userId)
+	}
+
+	instance = instance.Count(&count)
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Find(&rewards).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return res, errors.NotFound("REWARD_NOT_FOUND", "reward not found")
+			return res, errors.NotFound("REWARD_NOT_FOUND", "reward not found"), 0
 		}
 
-		return nil, errors.New(500, "REWARD ERROR", err.Error())
+		return nil, errors.New(500, "REWARD ERROR", err.Error()), 0
 	}
 
 	for _, reward := range rewards {
@@ -1063,7 +1095,7 @@ func (ub *UserBalanceRepo) GetUserRewards(ctx context.Context) ([]*biz.Reward, e
 			CreatedAt:        reward.CreatedAt,
 		})
 	}
-	return res, nil
+	return res, nil, count
 }
 
 // CreateUserCurrentMonthRecommend .
