@@ -3315,6 +3315,206 @@ var _ interface {
 	ErrorName() string
 } = AdminWithdrawEthReplyValidationError{}
 
+// Validate checks the field values on AdminFeeRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *AdminFeeRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminFeeRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminFeeRequestMultiError, or nil if none found.
+func (m *AdminFeeRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminFeeRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AdminFeeRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminFeeRequestMultiError is an error wrapping multiple validation errors
+// returned by AdminFeeRequest.ValidateAll() if the designated constraints
+// aren't met.
+type AdminFeeRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminFeeRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminFeeRequestMultiError) AllErrors() []error { return m }
+
+// AdminFeeRequestValidationError is the validation error returned by
+// AdminFeeRequest.Validate if the designated constraints aren't met.
+type AdminFeeRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminFeeRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminFeeRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminFeeRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminFeeRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminFeeRequestValidationError) ErrorName() string { return "AdminFeeRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AdminFeeRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminFeeRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminFeeRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminFeeRequestValidationError{}
+
+// Validate checks the field values on AdminFeeReply with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *AdminFeeReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminFeeReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in AdminFeeReplyMultiError, or
+// nil if none found.
+func (m *AdminFeeReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminFeeReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AdminFeeReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminFeeReplyMultiError is an error wrapping multiple validation errors
+// returned by AdminFeeReply.ValidateAll() if the designated constraints
+// aren't met.
+type AdminFeeReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminFeeReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminFeeReplyMultiError) AllErrors() []error { return m }
+
+// AdminFeeReplyValidationError is the validation error returned by
+// AdminFeeReply.Validate if the designated constraints aren't met.
+type AdminFeeReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminFeeReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminFeeReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminFeeReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminFeeReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminFeeReplyValidationError) ErrorName() string { return "AdminFeeReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AdminFeeReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminFeeReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminFeeReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminFeeReplyValidationError{}
+
 // Validate checks the field values on EthAuthorizeRequest_SendBody with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

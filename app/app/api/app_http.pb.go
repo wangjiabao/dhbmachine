@@ -19,6 +19,7 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationAppAdminFee = "/api.App/AdminFee"
 const OperationAppAdminLocationList = "/api.App/AdminLocationList"
 const OperationAppAdminRewardList = "/api.App/AdminRewardList"
 const OperationAppAdminUserList = "/api.App/AdminUserList"
@@ -35,6 +36,7 @@ const OperationAppWithdraw = "/api.App/Withdraw"
 const OperationAppWithdrawList = "/api.App/WithdrawList"
 
 type AppHTTPServer interface {
+	AdminFee(context.Context, *AdminFeeRequest) (*AdminFeeReply, error)
 	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
 	AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error)
 	AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error)
@@ -67,6 +69,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/admin_dhb/withdraw_list", _App_AdminWithdrawList0_HTTP_Handler(srv))
 	r.POST("/api/admin_dhb/withdraw", _App_AdminWithdraw0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/withdraw_eth", _App_AdminWithdrawEth0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/fee", _App_AdminFee0_HTTP_Handler(srv))
 }
 
 func _App_EthAuthorize0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
@@ -344,7 +347,27 @@ func _App_AdminWithdrawEth0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Contex
 	}
 }
 
+func _App_AdminFee0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminFeeRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminFee)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminFee(ctx, req.(*AdminFeeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminFeeReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AppHTTPClient interface {
+	AdminFee(ctx context.Context, req *AdminFeeRequest, opts ...http.CallOption) (rsp *AdminFeeReply, err error)
 	AdminLocationList(ctx context.Context, req *AdminLocationListRequest, opts ...http.CallOption) (rsp *AdminLocationListReply, err error)
 	AdminRewardList(ctx context.Context, req *AdminRewardListRequest, opts ...http.CallOption) (rsp *AdminRewardListReply, err error)
 	AdminUserList(ctx context.Context, req *AdminUserListRequest, opts ...http.CallOption) (rsp *AdminUserListReply, err error)
@@ -367,6 +390,19 @@ type AppHTTPClientImpl struct {
 
 func NewAppHTTPClient(client *http.Client) AppHTTPClient {
 	return &AppHTTPClientImpl{client}
+}
+
+func (c *AppHTTPClientImpl) AdminFee(ctx context.Context, in *AdminFeeRequest, opts ...http.CallOption) (*AdminFeeReply, error) {
+	var out AdminFeeReply
+	pattern := "/api/admin_dhb/fee"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminFee))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
 }
 
 func (c *AppHTTPClientImpl) AdminLocationList(ctx context.Context, in *AdminLocationListRequest, opts ...http.CallOption) (*AdminLocationListReply, error) {

@@ -301,7 +301,7 @@ func (u *UserRepo) GetUsers(ctx context.Context, b *biz.Pagination, address stri
 	}
 
 	instance = instance.Count(&count)
-	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Find(&users).Error; err != nil {
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Order("id desc").Find(&users).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.NotFound("USER_NOT_FOUND", "user not found"), 0
 		}
@@ -776,7 +776,7 @@ func (ub *UserBalanceRepo) GetWithdraws(ctx context.Context, b *biz.Pagination, 
 	}
 
 	instance = instance.Count(&count)
-	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Find(&withdraws).Error; err != nil {
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Order("id desc").Find(&withdraws).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return res, errors.NotFound("WITHDRAW_NOT_FOUND", "withdraw not found"), 0
 		}
@@ -926,6 +926,45 @@ func (ub *UserBalanceRepo) SystemFee(ctx context.Context, amount int64, location
 	return nil
 }
 
+// UserFee .
+func (ub *UserBalanceRepo) UserFee(ctx context.Context, userId int64, amount int64) (int64, error) {
+	var err error
+	if err = ub.data.DB(ctx).Table("user_balance").
+		Where("user_id=?", userId).
+		Updates(map[string]interface{}{"balance_usdt": gorm.Expr("balance_usdt + ?", amount)}).Error; nil != err {
+		return 0, errors.NotFound("user balance err", "user balance not found")
+	}
+
+	var userBalance UserBalance
+	err = ub.data.DB(ctx).Where(&UserBalance{UserId: userId}).Table("user_balance").First(&userBalance).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var userBalanceRecode UserBalanceRecord
+	userBalanceRecode.Balance = userBalance.BalanceUsdt
+	userBalanceRecode.UserId = userBalance.UserId
+	userBalanceRecode.Type = "fee_reward"
+	userBalanceRecode.Amount = amount
+	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
+	if err != nil {
+		return 0, err
+	}
+
+	var reward Reward
+	reward.UserId = userBalance.UserId
+	reward.Amount = amount
+	reward.BalanceRecordId = userBalanceRecode.ID
+	reward.Type = "system_reward" // 本次分红的行为类型
+	reward.Reason = "fee"         // 给我分红的理由
+	err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return userBalanceRecode.ID, nil
+}
+
 // RecommendWithdrawReward .
 func (ub *UserBalanceRepo) RecommendWithdrawReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error) {
 	var err error
@@ -1073,7 +1112,7 @@ func (ub *UserBalanceRepo) GetUserRewards(ctx context.Context, b *biz.Pagination
 	}
 
 	instance = instance.Count(&count)
-	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Find(&rewards).Error; err != nil {
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Order("id desc").Find(&rewards).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return res, errors.NotFound("REWARD_NOT_FOUND", "reward not found"), 0
 		}
@@ -1096,6 +1135,49 @@ func (ub *UserBalanceRepo) GetUserRewards(ctx context.Context, b *biz.Pagination
 		})
 	}
 	return res, nil, count
+}
+
+// GetUserRewardsLastMonthFee .
+func (ub *UserBalanceRepo) GetUserRewardsLastMonthFee(ctx context.Context) ([]*biz.Reward, error) {
+	var (
+		rewards []*Reward
+	)
+	res := make([]*biz.Reward, 0)
+
+	instance := ub.data.db.Table("reward")
+
+	now := time.Now().UTC().Add(8 * time.Hour)
+	lastMonthFirstDay := now.AddDate(0, -1, -now.Day()+1)
+	lastMonthStart := time.Date(lastMonthFirstDay.Year(), lastMonthFirstDay.Month(), lastMonthFirstDay.Day(), 0, 0, 0, 0, time.UTC)
+	lastMonthEndDay := lastMonthFirstDay.AddDate(0, 1, -1)
+	lastMonthEnd := time.Date(lastMonthEndDay.Year(), lastMonthEndDay.Month(), lastMonthEndDay.Day(), 23, 59, 59, 0, time.UTC)
+
+	if err := instance.Where("created_at>=?", lastMonthStart).
+		Where("created_at<=?", lastMonthEnd).
+		Where("reason=?", "system_fee").
+		Find(&rewards).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("REWARD_NOT_FOUND", "reward not found")
+		}
+
+		return nil, errors.New(500, "REWARD ERROR", err.Error())
+	}
+
+	for _, reward := range rewards {
+		res = append(res, &biz.Reward{
+			ID:               reward.ID,
+			UserId:           reward.UserId,
+			Amount:           reward.Amount,
+			BalanceRecordId:  reward.BalanceRecordId,
+			Type:             reward.Type,
+			TypeRecordId:     reward.TypeRecordId,
+			Reason:           reward.Reason,
+			ReasonLocationId: reward.ReasonLocationId,
+			LocationType:     reward.LocationType,
+			CreatedAt:        reward.CreatedAt,
+		})
+	}
+	return res, nil
 }
 
 // CreateUserCurrentMonthRecommend .
@@ -1183,6 +1265,36 @@ func (uc *UserCurrentMonthRecommendRepo) GetUserCurrentMonthRecommendCountByUser
 		} else {
 			res[userCurrentMonthRecommend.UserId]++
 		}
+	}
+	return res, nil
+}
+
+// GetUserLastMonthRecommend .
+func (uc *UserCurrentMonthRecommendRepo) GetUserLastMonthRecommend(ctx context.Context) ([]int64, error) {
+	var userCurrentMonthRecommends []*UserCurrentMonthRecommend
+	res := make([]int64, 0)
+
+	now := time.Now().UTC().Add(8 * time.Hour)
+	lastMonthFirstDay := now.AddDate(0, -1, -now.Day()+1)
+	lastMonthStart := time.Date(lastMonthFirstDay.Year(), lastMonthFirstDay.Month(), lastMonthFirstDay.Day(), 0, 0, 0, 0, time.UTC)
+	lastMonthEndDay := lastMonthFirstDay.AddDate(0, 1, -1)
+	lastMonthEnd := time.Date(lastMonthEndDay.Year(), lastMonthEndDay.Month(), lastMonthEndDay.Day(), 23, 59, 59, 0, time.UTC)
+
+	if err := uc.data.db.Table("user_current_month_recommend").
+		Group("user_id").
+		Having("count(id) > 5").
+		Where("date>=?", lastMonthStart).
+		Where("date<=?", lastMonthEnd).
+		Find(&userCurrentMonthRecommends).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USER_CURRENT_MONTH_RECOMMEND_NOT_FOUND", "user current month recommend not found")
+		}
+
+		return nil, errors.New(500, "USER CURRENT MONTH RECOMMEND ERROR", err.Error())
+	}
+
+	for _, userCurrentMonthRecommend := range userCurrentMonthRecommends {
+		res = append(res, userCurrentMonthRecommend.UserId)
 	}
 	return res, nil
 }

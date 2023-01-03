@@ -107,6 +107,30 @@ func (lr *LocationRepo) GetMyLocationLast(ctx context.Context, userId int64) (*b
 	}, nil
 }
 
+// GetMyLocationRunningLast .
+func (lr *LocationRepo) GetMyLocationRunningLast(ctx context.Context, userId int64) (*biz.Location, error) {
+	var location Location
+	if err := lr.data.db.Table("location").Where("user_id", userId).
+		Where("status=?", "running").Order("id desc").First(&location).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
+		}
+
+		return nil, errors.New(500, "LOCATION ERROR", err.Error())
+	}
+
+	return &biz.Location{
+		ID:           location.ID,
+		UserId:       location.UserId,
+		Status:       location.Status,
+		CurrentLevel: location.CurrentLevel,
+		Current:      location.Current,
+		CurrentMax:   location.CurrentMax,
+		Row:          location.Row,
+		Col:          location.Col,
+	}, nil
+}
+
 // GetLocationsByUserId .
 func (lr *LocationRepo) GetLocationsByUserId(ctx context.Context, userId int64) ([]*biz.Location, error) {
 	var locations []*Location
@@ -244,7 +268,7 @@ func (lr *LocationRepo) GetLocations(ctx context.Context, b *biz.Pagination, use
 	}
 
 	instance = instance.Count(&count)
-	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Find(&locations).Error; err != nil {
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Order("id desc").Find(&locations).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.NotFound("LOCATION_NOT_FOUND", "location not found"), 0
 		}
