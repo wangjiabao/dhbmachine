@@ -1021,7 +1021,6 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 		// 占位分红人分红
 		if nil != rewardLocations {
 			for _, vRewardLocations := range rewardLocations {
-				fmt.Println(vRewardLocations)
 				if "running" != vRewardLocations.Status {
 					continue
 				}
@@ -1040,7 +1039,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 				} else {
 					continue
 				}
-				fmt.Println(111)
+
 				tmpBalanceAmount := tmpAmount
 				tmpCurrent := vRewardLocations.Current
 				vRewardLocations.Current += tmpAmount
