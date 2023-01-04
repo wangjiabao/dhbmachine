@@ -247,26 +247,28 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 			if nil != myUserRecommendUserInfo {
 				// 获取当前用户的占位信息，已经有运行中的跳过
 				myUserRecommendUserLocationLast, err = ruc.locationRepo.GetMyLocationRunningLast(ctx, myUserRecommendUserInfo.UserId)
-				if nil != myUserRecommendUserLocationLast { // 无占位信息
-					if 0 == len(myLocations) { // vip 等级调整，被推荐人首次入单
-						myUserRecommendUserInfo.HistoryRecommend += 1
-						if myUserRecommendUserInfo.HistoryRecommend >= 10 {
-							myUserRecommendUserInfo.Vip = 5
-						} else if myUserRecommendUserInfo.HistoryRecommend >= 8 {
-							myUserRecommendUserInfo.Vip = 4
-						} else if myUserRecommendUserInfo.HistoryRecommend >= 6 {
-							myUserRecommendUserInfo.Vip = 3
-						} else if myUserRecommendUserInfo.HistoryRecommend >= 4 {
-							myUserRecommendUserInfo.Vip = 2
-						} else if myUserRecommendUserInfo.HistoryRecommend >= 2 {
-							myUserRecommendUserInfo.Vip = 1
-						}
 
-						_, err = ruc.userInfoRepo.UpdateUserInfo(ctx, myUserRecommendUserInfo) // 推荐人信息修改
-						if nil != err {
-							return err
-						}
+				// 无占位信息
+				if 0 == len(myLocations) { // vip 等级调整，被推荐人首次入单
+					myUserRecommendUserInfo.HistoryRecommend += 1
+					if myUserRecommendUserInfo.HistoryRecommend >= 10 {
+						myUserRecommendUserInfo.Vip = 5
+					} else if myUserRecommendUserInfo.HistoryRecommend >= 8 {
+						myUserRecommendUserInfo.Vip = 4
+					} else if myUserRecommendUserInfo.HistoryRecommend >= 6 {
+						myUserRecommendUserInfo.Vip = 3
+					} else if myUserRecommendUserInfo.HistoryRecommend >= 4 {
+						myUserRecommendUserInfo.Vip = 2
+					} else if myUserRecommendUserInfo.HistoryRecommend >= 2 {
+						myUserRecommendUserInfo.Vip = 1
+					}
 
+					_, err = ruc.userInfoRepo.UpdateUserInfo(ctx, myUserRecommendUserInfo) // 推荐人信息修改
+					if nil != err {
+						return err
+					}
+
+					if nil != myUserRecommendUserLocationLast {
 						if "running" == myUserRecommendUserLocationLast.Status {
 							tmpBalanceAmount := currentValue / 100 * 20
 							tmpCurrent := myUserRecommendUserLocationLast.Current
@@ -302,7 +304,9 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 							return err
 						}
 					}
+				}
 
+				if nil != myUserRecommendUserLocationLast {
 					var tmpMyRecommendAmount int64
 					if 5 == myUserRecommendUserInfo.Vip { // 会员等级分红
 						tmpMyRecommendAmount = currentValue / 100 * 20
