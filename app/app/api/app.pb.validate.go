@@ -637,6 +637,10 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for Account
 
+	// no validation rules for RecommendNumAll
+
+	// no validation rules for RecommendTeamAll
+
 	if len(errors) > 0 {
 		return UserInfoReplyMultiError(errors)
 	}
@@ -1668,6 +1672,246 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = WithdrawListReplyValidationError{}
+
+// Validate checks the field values on RecommendListRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RecommendListRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RecommendListRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RecommendListRequestMultiError, or nil if none found.
+func (m *RecommendListRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RecommendListRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Type
+
+	if len(errors) > 0 {
+		return RecommendListRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// RecommendListRequestMultiError is an error wrapping multiple validation
+// errors returned by RecommendListRequest.ValidateAll() if the designated
+// constraints aren't met.
+type RecommendListRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RecommendListRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RecommendListRequestMultiError) AllErrors() []error { return m }
+
+// RecommendListRequestValidationError is the validation error returned by
+// RecommendListRequest.Validate if the designated constraints aren't met.
+type RecommendListRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RecommendListRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RecommendListRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RecommendListRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RecommendListRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RecommendListRequestValidationError) ErrorName() string {
+	return "RecommendListRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RecommendListRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRecommendListRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RecommendListRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RecommendListRequestValidationError{}
+
+// Validate checks the field values on RecommendListReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RecommendListReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RecommendListReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RecommendListReplyMultiError, or nil if none found.
+func (m *RecommendListReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RecommendListReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetRecommends() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RecommendListReplyValidationError{
+						field:  fmt.Sprintf("Recommends[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RecommendListReplyValidationError{
+						field:  fmt.Sprintf("Recommends[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RecommendListReplyValidationError{
+					field:  fmt.Sprintf("Recommends[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return RecommendListReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// RecommendListReplyMultiError is an error wrapping multiple validation errors
+// returned by RecommendListReply.ValidateAll() if the designated constraints
+// aren't met.
+type RecommendListReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RecommendListReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RecommendListReplyMultiError) AllErrors() []error { return m }
+
+// RecommendListReplyValidationError is the validation error returned by
+// RecommendListReply.Validate if the designated constraints aren't met.
+type RecommendListReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RecommendListReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RecommendListReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RecommendListReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RecommendListReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RecommendListReplyValidationError) ErrorName() string {
+	return "RecommendListReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RecommendListReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRecommendListReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RecommendListReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RecommendListReplyValidationError{}
 
 // Validate checks the field values on WithdrawRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -3733,6 +3977,1213 @@ var _ interface {
 	ErrorName() string
 } = AdminAllReplyValidationError{}
 
+// Validate checks the field values on AdminUserRecommendRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminUserRecommendRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminUserRecommendRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminUserRecommendRequestMultiError, or nil if none found.
+func (m *AdminUserRecommendRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminUserRecommendRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for UserId
+
+	// no validation rules for Page
+
+	if len(errors) > 0 {
+		return AdminUserRecommendRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminUserRecommendRequestMultiError is an error wrapping multiple validation
+// errors returned by AdminUserRecommendRequest.ValidateAll() if the
+// designated constraints aren't met.
+type AdminUserRecommendRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminUserRecommendRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminUserRecommendRequestMultiError) AllErrors() []error { return m }
+
+// AdminUserRecommendRequestValidationError is the validation error returned by
+// AdminUserRecommendRequest.Validate if the designated constraints aren't met.
+type AdminUserRecommendRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminUserRecommendRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminUserRecommendRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminUserRecommendRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminUserRecommendRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminUserRecommendRequestValidationError) ErrorName() string {
+	return "AdminUserRecommendRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminUserRecommendRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminUserRecommendRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminUserRecommendRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminUserRecommendRequestValidationError{}
+
+// Validate checks the field values on AdminUserRecommendReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminUserRecommendReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminUserRecommendReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminUserRecommendReplyMultiError, or nil if none found.
+func (m *AdminUserRecommendReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminUserRecommendReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetUsers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AdminUserRecommendReplyValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AdminUserRecommendReplyValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AdminUserRecommendReplyValidationError{
+					field:  fmt.Sprintf("Users[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Count
+
+	if len(errors) > 0 {
+		return AdminUserRecommendReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminUserRecommendReplyMultiError is an error wrapping multiple validation
+// errors returned by AdminUserRecommendReply.ValidateAll() if the designated
+// constraints aren't met.
+type AdminUserRecommendReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminUserRecommendReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminUserRecommendReplyMultiError) AllErrors() []error { return m }
+
+// AdminUserRecommendReplyValidationError is the validation error returned by
+// AdminUserRecommendReply.Validate if the designated constraints aren't met.
+type AdminUserRecommendReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminUserRecommendReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminUserRecommendReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminUserRecommendReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminUserRecommendReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminUserRecommendReplyValidationError) ErrorName() string {
+	return "AdminUserRecommendReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminUserRecommendReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminUserRecommendReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminUserRecommendReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminUserRecommendReplyValidationError{}
+
+// Validate checks the field values on AdminMonthRecommendRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminMonthRecommendRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminMonthRecommendRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminMonthRecommendRequestMultiError, or nil if none found.
+func (m *AdminMonthRecommendRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminMonthRecommendRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Page
+
+	if len(errors) > 0 {
+		return AdminMonthRecommendRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminMonthRecommendRequestMultiError is an error wrapping multiple
+// validation errors returned by AdminMonthRecommendRequest.ValidateAll() if
+// the designated constraints aren't met.
+type AdminMonthRecommendRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminMonthRecommendRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminMonthRecommendRequestMultiError) AllErrors() []error { return m }
+
+// AdminMonthRecommendRequestValidationError is the validation error returned
+// by AdminMonthRecommendRequest.Validate if the designated constraints aren't met.
+type AdminMonthRecommendRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminMonthRecommendRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminMonthRecommendRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminMonthRecommendRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminMonthRecommendRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminMonthRecommendRequestValidationError) ErrorName() string {
+	return "AdminMonthRecommendRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminMonthRecommendRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminMonthRecommendRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminMonthRecommendRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminMonthRecommendRequestValidationError{}
+
+// Validate checks the field values on AdminMonthRecommendReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminMonthRecommendReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminMonthRecommendReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminMonthRecommendReplyMultiError, or nil if none found.
+func (m *AdminMonthRecommendReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminMonthRecommendReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetUsers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AdminMonthRecommendReplyValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AdminMonthRecommendReplyValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AdminMonthRecommendReplyValidationError{
+					field:  fmt.Sprintf("Users[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Count
+
+	if len(errors) > 0 {
+		return AdminMonthRecommendReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminMonthRecommendReplyMultiError is an error wrapping multiple validation
+// errors returned by AdminMonthRecommendReply.ValidateAll() if the designated
+// constraints aren't met.
+type AdminMonthRecommendReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminMonthRecommendReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminMonthRecommendReplyMultiError) AllErrors() []error { return m }
+
+// AdminMonthRecommendReplyValidationError is the validation error returned by
+// AdminMonthRecommendReply.Validate if the designated constraints aren't met.
+type AdminMonthRecommendReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminMonthRecommendReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminMonthRecommendReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminMonthRecommendReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminMonthRecommendReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminMonthRecommendReplyValidationError) ErrorName() string {
+	return "AdminMonthRecommendReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminMonthRecommendReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminMonthRecommendReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminMonthRecommendReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminMonthRecommendReplyValidationError{}
+
+// Validate checks the field values on AdminUserMonthRecommendRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminUserMonthRecommendRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminUserMonthRecommendRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// AdminUserMonthRecommendRequestMultiError, or nil if none found.
+func (m *AdminUserMonthRecommendRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminUserMonthRecommendRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for UserId
+
+	// no validation rules for Page
+
+	if len(errors) > 0 {
+		return AdminUserMonthRecommendRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminUserMonthRecommendRequestMultiError is an error wrapping multiple
+// validation errors returned by AdminUserMonthRecommendRequest.ValidateAll()
+// if the designated constraints aren't met.
+type AdminUserMonthRecommendRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminUserMonthRecommendRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminUserMonthRecommendRequestMultiError) AllErrors() []error { return m }
+
+// AdminUserMonthRecommendRequestValidationError is the validation error
+// returned by AdminUserMonthRecommendRequest.Validate if the designated
+// constraints aren't met.
+type AdminUserMonthRecommendRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminUserMonthRecommendRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminUserMonthRecommendRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminUserMonthRecommendRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminUserMonthRecommendRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminUserMonthRecommendRequestValidationError) ErrorName() string {
+	return "AdminUserMonthRecommendRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminUserMonthRecommendRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminUserMonthRecommendRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminUserMonthRecommendRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminUserMonthRecommendRequestValidationError{}
+
+// Validate checks the field values on AdminUserMonthRecommendReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminUserMonthRecommendReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminUserMonthRecommendReply with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminUserMonthRecommendReplyMultiError, or nil if none found.
+func (m *AdminUserMonthRecommendReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminUserMonthRecommendReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetUsers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AdminUserMonthRecommendReplyValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AdminUserMonthRecommendReplyValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AdminUserMonthRecommendReplyValidationError{
+					field:  fmt.Sprintf("Users[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Count
+
+	if len(errors) > 0 {
+		return AdminUserMonthRecommendReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminUserMonthRecommendReplyMultiError is an error wrapping multiple
+// validation errors returned by AdminUserMonthRecommendReply.ValidateAll() if
+// the designated constraints aren't met.
+type AdminUserMonthRecommendReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminUserMonthRecommendReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminUserMonthRecommendReplyMultiError) AllErrors() []error { return m }
+
+// AdminUserMonthRecommendReplyValidationError is the validation error returned
+// by AdminUserMonthRecommendReply.Validate if the designated constraints
+// aren't met.
+type AdminUserMonthRecommendReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminUserMonthRecommendReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminUserMonthRecommendReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminUserMonthRecommendReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminUserMonthRecommendReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminUserMonthRecommendReplyValidationError) ErrorName() string {
+	return "AdminUserMonthRecommendReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminUserMonthRecommendReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminUserMonthRecommendReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminUserMonthRecommendReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminUserMonthRecommendReplyValidationError{}
+
+// Validate checks the field values on AdminConfigRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminConfigRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminConfigRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminConfigRequestMultiError, or nil if none found.
+func (m *AdminConfigRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminConfigRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for UserId
+
+	// no validation rules for Page
+
+	if len(errors) > 0 {
+		return AdminConfigRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminConfigRequestMultiError is an error wrapping multiple validation errors
+// returned by AdminConfigRequest.ValidateAll() if the designated constraints
+// aren't met.
+type AdminConfigRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminConfigRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminConfigRequestMultiError) AllErrors() []error { return m }
+
+// AdminConfigRequestValidationError is the validation error returned by
+// AdminConfigRequest.Validate if the designated constraints aren't met.
+type AdminConfigRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminConfigRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminConfigRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminConfigRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminConfigRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminConfigRequestValidationError) ErrorName() string {
+	return "AdminConfigRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminConfigRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminConfigRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminConfigRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminConfigRequestValidationError{}
+
+// Validate checks the field values on AdminConfigReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *AdminConfigReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminConfigReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminConfigReplyMultiError, or nil if none found.
+func (m *AdminConfigReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminConfigReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetConfig() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AdminConfigReplyValidationError{
+						field:  fmt.Sprintf("Config[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AdminConfigReplyValidationError{
+						field:  fmt.Sprintf("Config[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AdminConfigReplyValidationError{
+					field:  fmt.Sprintf("Config[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Count
+
+	if len(errors) > 0 {
+		return AdminConfigReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminConfigReplyMultiError is an error wrapping multiple validation errors
+// returned by AdminConfigReply.ValidateAll() if the designated constraints
+// aren't met.
+type AdminConfigReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminConfigReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminConfigReplyMultiError) AllErrors() []error { return m }
+
+// AdminConfigReplyValidationError is the validation error returned by
+// AdminConfigReply.Validate if the designated constraints aren't met.
+type AdminConfigReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminConfigReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminConfigReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminConfigReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminConfigReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminConfigReplyValidationError) ErrorName() string { return "AdminConfigReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AdminConfigReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminConfigReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminConfigReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminConfigReplyValidationError{}
+
+// Validate checks the field values on AdminConfigUpdateRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminConfigUpdateRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminConfigUpdateRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminConfigUpdateRequestMultiError, or nil if none found.
+func (m *AdminConfigUpdateRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminConfigUpdateRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetSendBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AdminConfigUpdateRequestValidationError{
+					field:  "SendBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AdminConfigUpdateRequestValidationError{
+					field:  "SendBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSendBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AdminConfigUpdateRequestValidationError{
+				field:  "SendBody",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AdminConfigUpdateRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminConfigUpdateRequestMultiError is an error wrapping multiple validation
+// errors returned by AdminConfigUpdateRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AdminConfigUpdateRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminConfigUpdateRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminConfigUpdateRequestMultiError) AllErrors() []error { return m }
+
+// AdminConfigUpdateRequestValidationError is the validation error returned by
+// AdminConfigUpdateRequest.Validate if the designated constraints aren't met.
+type AdminConfigUpdateRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminConfigUpdateRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminConfigUpdateRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminConfigUpdateRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminConfigUpdateRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminConfigUpdateRequestValidationError) ErrorName() string {
+	return "AdminConfigUpdateRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminConfigUpdateRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminConfigUpdateRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminConfigUpdateRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminConfigUpdateRequestValidationError{}
+
+// Validate checks the field values on AdminConfigUpdateReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminConfigUpdateReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminConfigUpdateReply with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminConfigUpdateReplyMultiError, or nil if none found.
+func (m *AdminConfigUpdateReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminConfigUpdateReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AdminConfigUpdateReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminConfigUpdateReplyMultiError is an error wrapping multiple validation
+// errors returned by AdminConfigUpdateReply.ValidateAll() if the designated
+// constraints aren't met.
+type AdminConfigUpdateReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminConfigUpdateReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminConfigUpdateReplyMultiError) AllErrors() []error { return m }
+
+// AdminConfigUpdateReplyValidationError is the validation error returned by
+// AdminConfigUpdateReply.Validate if the designated constraints aren't met.
+type AdminConfigUpdateReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminConfigUpdateReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminConfigUpdateReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminConfigUpdateReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminConfigUpdateReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminConfigUpdateReplyValidationError) ErrorName() string {
+	return "AdminConfigUpdateReplyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminConfigUpdateReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminConfigUpdateReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminConfigUpdateReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminConfigUpdateReplyValidationError{}
+
 // Validate checks the field values on EthAuthorizeRequest_SendBody with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -4276,6 +5727,112 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = WithdrawListReply_ListValidationError{}
+
+// Validate checks the field values on RecommendListReply_List with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RecommendListReply_List) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RecommendListReply_List with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RecommendListReply_ListMultiError, or nil if none found.
+func (m *RecommendListReply_List) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RecommendListReply_List) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Amount
+
+	// no validation rules for Status
+
+	if len(errors) > 0 {
+		return RecommendListReply_ListMultiError(errors)
+	}
+
+	return nil
+}
+
+// RecommendListReply_ListMultiError is an error wrapping multiple validation
+// errors returned by RecommendListReply_List.ValidateAll() if the designated
+// constraints aren't met.
+type RecommendListReply_ListMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RecommendListReply_ListMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RecommendListReply_ListMultiError) AllErrors() []error { return m }
+
+// RecommendListReply_ListValidationError is the validation error returned by
+// RecommendListReply_List.Validate if the designated constraints aren't met.
+type RecommendListReply_ListValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RecommendListReply_ListValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RecommendListReply_ListValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RecommendListReply_ListValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RecommendListReply_ListValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RecommendListReply_ListValidationError) ErrorName() string {
+	return "RecommendListReply_ListValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RecommendListReply_ListValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRecommendListReply_List.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RecommendListReply_ListValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RecommendListReply_ListValidationError{}
 
 // Validate checks the field values on WithdrawRequest_SendBody with the rules
 // defined in the proto definition for this message. If any rules are
@@ -4954,3 +6511,549 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AdminWithdrawRequest_SendBodyValidationError{}
+
+// Validate checks the field values on AdminUserRecommendReply_List with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminUserRecommendReply_List) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminUserRecommendReply_List with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminUserRecommendReply_ListMultiError, or nil if none found.
+func (m *AdminUserRecommendReply_List) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminUserRecommendReply_List) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Address
+
+	// no validation rules for Id
+
+	// no validation rules for CreatedAt
+
+	if len(errors) > 0 {
+		return AdminUserRecommendReply_ListMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminUserRecommendReply_ListMultiError is an error wrapping multiple
+// validation errors returned by AdminUserRecommendReply_List.ValidateAll() if
+// the designated constraints aren't met.
+type AdminUserRecommendReply_ListMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminUserRecommendReply_ListMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminUserRecommendReply_ListMultiError) AllErrors() []error { return m }
+
+// AdminUserRecommendReply_ListValidationError is the validation error returned
+// by AdminUserRecommendReply_List.Validate if the designated constraints
+// aren't met.
+type AdminUserRecommendReply_ListValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminUserRecommendReply_ListValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminUserRecommendReply_ListValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminUserRecommendReply_ListValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminUserRecommendReply_ListValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminUserRecommendReply_ListValidationError) ErrorName() string {
+	return "AdminUserRecommendReply_ListValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminUserRecommendReply_ListValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminUserRecommendReply_List.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminUserRecommendReply_ListValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminUserRecommendReply_ListValidationError{}
+
+// Validate checks the field values on AdminMonthRecommendReply_List with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminMonthRecommendReply_List) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminMonthRecommendReply_List with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// AdminMonthRecommendReply_ListMultiError, or nil if none found.
+func (m *AdminMonthRecommendReply_List) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminMonthRecommendReply_List) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Address
+
+	// no validation rules for Id
+
+	// no validation rules for CreatedAt
+
+	if len(errors) > 0 {
+		return AdminMonthRecommendReply_ListMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminMonthRecommendReply_ListMultiError is an error wrapping multiple
+// validation errors returned by AdminMonthRecommendReply_List.ValidateAll()
+// if the designated constraints aren't met.
+type AdminMonthRecommendReply_ListMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminMonthRecommendReply_ListMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminMonthRecommendReply_ListMultiError) AllErrors() []error { return m }
+
+// AdminMonthRecommendReply_ListValidationError is the validation error
+// returned by AdminMonthRecommendReply_List.Validate if the designated
+// constraints aren't met.
+type AdminMonthRecommendReply_ListValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminMonthRecommendReply_ListValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminMonthRecommendReply_ListValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminMonthRecommendReply_ListValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminMonthRecommendReply_ListValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminMonthRecommendReply_ListValidationError) ErrorName() string {
+	return "AdminMonthRecommendReply_ListValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminMonthRecommendReply_ListValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminMonthRecommendReply_List.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminMonthRecommendReply_ListValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminMonthRecommendReply_ListValidationError{}
+
+// Validate checks the field values on AdminUserMonthRecommendReply_List with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *AdminUserMonthRecommendReply_List) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminUserMonthRecommendReply_List
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// AdminUserMonthRecommendReply_ListMultiError, or nil if none found.
+func (m *AdminUserMonthRecommendReply_List) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminUserMonthRecommendReply_List) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Address
+
+	// no validation rules for Id
+
+	// no validation rules for CreatedAt
+
+	if len(errors) > 0 {
+		return AdminUserMonthRecommendReply_ListMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminUserMonthRecommendReply_ListMultiError is an error wrapping multiple
+// validation errors returned by
+// AdminUserMonthRecommendReply_List.ValidateAll() if the designated
+// constraints aren't met.
+type AdminUserMonthRecommendReply_ListMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminUserMonthRecommendReply_ListMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminUserMonthRecommendReply_ListMultiError) AllErrors() []error { return m }
+
+// AdminUserMonthRecommendReply_ListValidationError is the validation error
+// returned by AdminUserMonthRecommendReply_List.Validate if the designated
+// constraints aren't met.
+type AdminUserMonthRecommendReply_ListValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminUserMonthRecommendReply_ListValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminUserMonthRecommendReply_ListValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminUserMonthRecommendReply_ListValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminUserMonthRecommendReply_ListValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminUserMonthRecommendReply_ListValidationError) ErrorName() string {
+	return "AdminUserMonthRecommendReply_ListValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminUserMonthRecommendReply_ListValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminUserMonthRecommendReply_List.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminUserMonthRecommendReply_ListValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminUserMonthRecommendReply_ListValidationError{}
+
+// Validate checks the field values on AdminConfigReply_List with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminConfigReply_List) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminConfigReply_List with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminConfigReply_ListMultiError, or nil if none found.
+func (m *AdminConfigReply_List) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminConfigReply_List) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Name
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return AdminConfigReply_ListMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminConfigReply_ListMultiError is an error wrapping multiple validation
+// errors returned by AdminConfigReply_List.ValidateAll() if the designated
+// constraints aren't met.
+type AdminConfigReply_ListMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminConfigReply_ListMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminConfigReply_ListMultiError) AllErrors() []error { return m }
+
+// AdminConfigReply_ListValidationError is the validation error returned by
+// AdminConfigReply_List.Validate if the designated constraints aren't met.
+type AdminConfigReply_ListValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminConfigReply_ListValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminConfigReply_ListValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminConfigReply_ListValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminConfigReply_ListValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminConfigReply_ListValidationError) ErrorName() string {
+	return "AdminConfigReply_ListValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminConfigReply_ListValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminConfigReply_List.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminConfigReply_ListValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminConfigReply_ListValidationError{}
+
+// Validate checks the field values on AdminConfigUpdateRequest_SendBody with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *AdminConfigUpdateRequest_SendBody) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminConfigUpdateRequest_SendBody
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// AdminConfigUpdateRequest_SendBodyMultiError, or nil if none found.
+func (m *AdminConfigUpdateRequest_SendBody) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminConfigUpdateRequest_SendBody) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return AdminConfigUpdateRequest_SendBodyMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminConfigUpdateRequest_SendBodyMultiError is an error wrapping multiple
+// validation errors returned by
+// AdminConfigUpdateRequest_SendBody.ValidateAll() if the designated
+// constraints aren't met.
+type AdminConfigUpdateRequest_SendBodyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminConfigUpdateRequest_SendBodyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminConfigUpdateRequest_SendBodyMultiError) AllErrors() []error { return m }
+
+// AdminConfigUpdateRequest_SendBodyValidationError is the validation error
+// returned by AdminConfigUpdateRequest_SendBody.Validate if the designated
+// constraints aren't met.
+type AdminConfigUpdateRequest_SendBodyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminConfigUpdateRequest_SendBodyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminConfigUpdateRequest_SendBodyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminConfigUpdateRequest_SendBodyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminConfigUpdateRequest_SendBodyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminConfigUpdateRequest_SendBodyValidationError) ErrorName() string {
+	return "AdminConfigUpdateRequest_SendBodyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminConfigUpdateRequest_SendBodyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminConfigUpdateRequest_SendBody.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminConfigUpdateRequest_SendBodyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminConfigUpdateRequest_SendBodyValidationError{}

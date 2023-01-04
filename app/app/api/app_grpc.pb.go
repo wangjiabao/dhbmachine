@@ -29,6 +29,7 @@ type AppClient interface {
 	RecommendRewardList(ctx context.Context, in *RecommendRewardListRequest, opts ...grpc.CallOption) (*RecommendRewardListReply, error)
 	FeeRewardList(ctx context.Context, in *FeeRewardListRequest, opts ...grpc.CallOption) (*FeeRewardListReply, error)
 	WithdrawList(ctx context.Context, in *WithdrawListRequest, opts ...grpc.CallOption) (*WithdrawListReply, error)
+	RecommendList(ctx context.Context, in *RecommendListRequest, opts ...grpc.CallOption) (*RecommendListReply, error)
 	Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error)
 	AdminRewardList(ctx context.Context, in *AdminRewardListRequest, opts ...grpc.CallOption) (*AdminRewardListReply, error)
 	AdminUserList(ctx context.Context, in *AdminUserListRequest, opts ...grpc.CallOption) (*AdminUserListReply, error)
@@ -38,6 +39,11 @@ type AppClient interface {
 	AdminWithdrawEth(ctx context.Context, in *AdminWithdrawEthRequest, opts ...grpc.CallOption) (*AdminWithdrawEthReply, error)
 	AdminFee(ctx context.Context, in *AdminFeeRequest, opts ...grpc.CallOption) (*AdminFeeReply, error)
 	AdminAll(ctx context.Context, in *AdminAllRequest, opts ...grpc.CallOption) (*AdminAllReply, error)
+	AdminUserRecommend(ctx context.Context, in *AdminUserRecommendRequest, opts ...grpc.CallOption) (*AdminUserRecommendReply, error)
+	AdminMonthRecommend(ctx context.Context, in *AdminMonthRecommendRequest, opts ...grpc.CallOption) (*AdminMonthRecommendReply, error)
+	AdminUserMonthRecommend(ctx context.Context, in *AdminUserMonthRecommendRequest, opts ...grpc.CallOption) (*AdminUserMonthRecommendReply, error)
+	AdminConfig(ctx context.Context, in *AdminConfigRequest, opts ...grpc.CallOption) (*AdminConfigReply, error)
+	AdminConfigUpdate(ctx context.Context, in *AdminConfigUpdateRequest, opts ...grpc.CallOption) (*AdminConfigUpdateReply, error)
 }
 
 type appClient struct {
@@ -105,6 +111,15 @@ func (c *appClient) FeeRewardList(ctx context.Context, in *FeeRewardListRequest,
 func (c *appClient) WithdrawList(ctx context.Context, in *WithdrawListRequest, opts ...grpc.CallOption) (*WithdrawListReply, error) {
 	out := new(WithdrawListReply)
 	err := c.cc.Invoke(ctx, "/api.App/WithdrawList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) RecommendList(ctx context.Context, in *RecommendListRequest, opts ...grpc.CallOption) (*RecommendListReply, error) {
+	out := new(RecommendListReply)
+	err := c.cc.Invoke(ctx, "/api.App/RecommendList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -192,6 +207,51 @@ func (c *appClient) AdminAll(ctx context.Context, in *AdminAllRequest, opts ...g
 	return out, nil
 }
 
+func (c *appClient) AdminUserRecommend(ctx context.Context, in *AdminUserRecommendRequest, opts ...grpc.CallOption) (*AdminUserRecommendReply, error) {
+	out := new(AdminUserRecommendReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminUserRecommend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) AdminMonthRecommend(ctx context.Context, in *AdminMonthRecommendRequest, opts ...grpc.CallOption) (*AdminMonthRecommendReply, error) {
+	out := new(AdminMonthRecommendReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminMonthRecommend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) AdminUserMonthRecommend(ctx context.Context, in *AdminUserMonthRecommendRequest, opts ...grpc.CallOption) (*AdminUserMonthRecommendReply, error) {
+	out := new(AdminUserMonthRecommendReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminUserMonthRecommend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) AdminConfig(ctx context.Context, in *AdminConfigRequest, opts ...grpc.CallOption) (*AdminConfigReply, error) {
+	out := new(AdminConfigReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) AdminConfigUpdate(ctx context.Context, in *AdminConfigUpdateRequest, opts ...grpc.CallOption) (*AdminConfigUpdateReply, error) {
+	out := new(AdminConfigUpdateReply)
+	err := c.cc.Invoke(ctx, "/api.App/AdminConfigUpdate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServer is the server API for App service.
 // All implementations must embed UnimplementedAppServer
 // for forward compatibility
@@ -203,6 +263,7 @@ type AppServer interface {
 	RecommendRewardList(context.Context, *RecommendRewardListRequest) (*RecommendRewardListReply, error)
 	FeeRewardList(context.Context, *FeeRewardListRequest) (*FeeRewardListReply, error)
 	WithdrawList(context.Context, *WithdrawListRequest) (*WithdrawListReply, error)
+	RecommendList(context.Context, *RecommendListRequest) (*RecommendListReply, error)
 	Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error)
 	AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error)
 	AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error)
@@ -212,6 +273,11 @@ type AppServer interface {
 	AdminWithdrawEth(context.Context, *AdminWithdrawEthRequest) (*AdminWithdrawEthReply, error)
 	AdminFee(context.Context, *AdminFeeRequest) (*AdminFeeReply, error)
 	AdminAll(context.Context, *AdminAllRequest) (*AdminAllReply, error)
+	AdminUserRecommend(context.Context, *AdminUserRecommendRequest) (*AdminUserRecommendReply, error)
+	AdminMonthRecommend(context.Context, *AdminMonthRecommendRequest) (*AdminMonthRecommendReply, error)
+	AdminUserMonthRecommend(context.Context, *AdminUserMonthRecommendRequest) (*AdminUserMonthRecommendReply, error)
+	AdminConfig(context.Context, *AdminConfigRequest) (*AdminConfigReply, error)
+	AdminConfigUpdate(context.Context, *AdminConfigUpdateRequest) (*AdminConfigUpdateReply, error)
 	mustEmbedUnimplementedAppServer()
 }
 
@@ -240,6 +306,9 @@ func (UnimplementedAppServer) FeeRewardList(context.Context, *FeeRewardListReque
 func (UnimplementedAppServer) WithdrawList(context.Context, *WithdrawListRequest) (*WithdrawListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WithdrawList not implemented")
 }
+func (UnimplementedAppServer) RecommendList(context.Context, *RecommendListRequest) (*RecommendListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecommendList not implemented")
+}
 func (UnimplementedAppServer) Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
 }
@@ -266,6 +335,21 @@ func (UnimplementedAppServer) AdminFee(context.Context, *AdminFeeRequest) (*Admi
 }
 func (UnimplementedAppServer) AdminAll(context.Context, *AdminAllRequest) (*AdminAllReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminAll not implemented")
+}
+func (UnimplementedAppServer) AdminUserRecommend(context.Context, *AdminUserRecommendRequest) (*AdminUserRecommendReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminUserRecommend not implemented")
+}
+func (UnimplementedAppServer) AdminMonthRecommend(context.Context, *AdminMonthRecommendRequest) (*AdminMonthRecommendReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminMonthRecommend not implemented")
+}
+func (UnimplementedAppServer) AdminUserMonthRecommend(context.Context, *AdminUserMonthRecommendRequest) (*AdminUserMonthRecommendReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminUserMonthRecommend not implemented")
+}
+func (UnimplementedAppServer) AdminConfig(context.Context, *AdminConfigRequest) (*AdminConfigReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminConfig not implemented")
+}
+func (UnimplementedAppServer) AdminConfigUpdate(context.Context, *AdminConfigUpdateRequest) (*AdminConfigUpdateReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminConfigUpdate not implemented")
 }
 func (UnimplementedAppServer) mustEmbedUnimplementedAppServer() {}
 
@@ -402,6 +486,24 @@ func _App_WithdrawList_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).WithdrawList(ctx, req.(*WithdrawListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_RecommendList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecommendListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).RecommendList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/RecommendList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).RecommendList(ctx, req.(*RecommendListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -568,6 +670,96 @@ func _App_AdminAll_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _App_AdminUserRecommend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminUserRecommendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminUserRecommend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminUserRecommend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminUserRecommend(ctx, req.(*AdminUserRecommendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_AdminMonthRecommend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminMonthRecommendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminMonthRecommend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminMonthRecommend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminMonthRecommend(ctx, req.(*AdminMonthRecommendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_AdminUserMonthRecommend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminUserMonthRecommendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminUserMonthRecommend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminUserMonthRecommend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminUserMonthRecommend(ctx, req.(*AdminUserMonthRecommendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_AdminConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminConfig(ctx, req.(*AdminConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_AdminConfigUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminConfigUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).AdminConfigUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/AdminConfigUpdate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).AdminConfigUpdate(ctx, req.(*AdminConfigUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // App_ServiceDesc is the grpc.ServiceDesc for App service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -604,6 +796,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _App_WithdrawList_Handler,
 		},
 		{
+			MethodName: "RecommendList",
+			Handler:    _App_RecommendList_Handler,
+		},
+		{
 			MethodName: "Withdraw",
 			Handler:    _App_Withdraw_Handler,
 		},
@@ -638,6 +834,26 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminAll",
 			Handler:    _App_AdminAll_Handler,
+		},
+		{
+			MethodName: "AdminUserRecommend",
+			Handler:    _App_AdminUserRecommend_Handler,
+		},
+		{
+			MethodName: "AdminMonthRecommend",
+			Handler:    _App_AdminMonthRecommend_Handler,
+		},
+		{
+			MethodName: "AdminUserMonthRecommend",
+			Handler:    _App_AdminUserMonthRecommend_Handler,
+		},
+		{
+			MethodName: "AdminConfig",
+			Handler:    _App_AdminConfig_Handler,
+		},
+		{
+			MethodName: "AdminConfigUpdate",
+			Handler:    _App_AdminConfigUpdate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

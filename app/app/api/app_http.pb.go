@@ -20,16 +20,22 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationAppAdminAll = "/api.App/AdminAll"
+const OperationAppAdminConfig = "/api.App/AdminConfig"
+const OperationAppAdminConfigUpdate = "/api.App/AdminConfigUpdate"
 const OperationAppAdminFee = "/api.App/AdminFee"
 const OperationAppAdminLocationList = "/api.App/AdminLocationList"
+const OperationAppAdminMonthRecommend = "/api.App/AdminMonthRecommend"
 const OperationAppAdminRewardList = "/api.App/AdminRewardList"
 const OperationAppAdminUserList = "/api.App/AdminUserList"
+const OperationAppAdminUserMonthRecommend = "/api.App/AdminUserMonthRecommend"
+const OperationAppAdminUserRecommend = "/api.App/AdminUserRecommend"
 const OperationAppAdminWithdraw = "/api.App/AdminWithdraw"
 const OperationAppAdminWithdrawEth = "/api.App/AdminWithdrawEth"
 const OperationAppAdminWithdrawList = "/api.App/AdminWithdrawList"
 const OperationAppDeposit = "/api.App/Deposit"
 const OperationAppEthAuthorize = "/api.App/EthAuthorize"
 const OperationAppFeeRewardList = "/api.App/FeeRewardList"
+const OperationAppRecommendList = "/api.App/RecommendList"
 const OperationAppRecommendRewardList = "/api.App/RecommendRewardList"
 const OperationAppRewardList = "/api.App/RewardList"
 const OperationAppUserInfo = "/api.App/UserInfo"
@@ -38,16 +44,22 @@ const OperationAppWithdrawList = "/api.App/WithdrawList"
 
 type AppHTTPServer interface {
 	AdminAll(context.Context, *AdminAllRequest) (*AdminAllReply, error)
+	AdminConfig(context.Context, *AdminConfigRequest) (*AdminConfigReply, error)
+	AdminConfigUpdate(context.Context, *AdminConfigUpdateRequest) (*AdminConfigUpdateReply, error)
 	AdminFee(context.Context, *AdminFeeRequest) (*AdminFeeReply, error)
 	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
+	AdminMonthRecommend(context.Context, *AdminMonthRecommendRequest) (*AdminMonthRecommendReply, error)
 	AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error)
 	AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error)
+	AdminUserMonthRecommend(context.Context, *AdminUserMonthRecommendRequest) (*AdminUserMonthRecommendReply, error)
+	AdminUserRecommend(context.Context, *AdminUserRecommendRequest) (*AdminUserRecommendReply, error)
 	AdminWithdraw(context.Context, *AdminWithdrawRequest) (*AdminWithdrawReply, error)
 	AdminWithdrawEth(context.Context, *AdminWithdrawEthRequest) (*AdminWithdrawEthReply, error)
 	AdminWithdrawList(context.Context, *AdminWithdrawListRequest) (*AdminWithdrawListReply, error)
 	Deposit(context.Context, *DepositRequest) (*DepositReply, error)
 	EthAuthorize(context.Context, *EthAuthorizeRequest) (*EthAuthorizeReply, error)
 	FeeRewardList(context.Context, *FeeRewardListRequest) (*FeeRewardListReply, error)
+	RecommendList(context.Context, *RecommendListRequest) (*RecommendListReply, error)
 	RecommendRewardList(context.Context, *RecommendRewardListRequest) (*RecommendRewardListReply, error)
 	RewardList(context.Context, *RewardListRequest) (*RewardListReply, error)
 	UserInfo(context.Context, *UserInfoRequest) (*UserInfoReply, error)
@@ -64,6 +76,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/app_server/recommend_reward_list", _App_RecommendRewardList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/fee_reward_list", _App_FeeRewardList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/withdraw_list", _App_WithdrawList0_HTTP_Handler(srv))
+	r.GET("/api/app_server/recommend_list", _App_RecommendList0_HTTP_Handler(srv))
 	r.POST("/api/app_server/withdraw", _App_Withdraw0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/reward_list", _App_AdminRewardList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/user_list", _App_AdminUserList0_HTTP_Handler(srv))
@@ -73,6 +86,11 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/admin_dhb/withdraw_eth", _App_AdminWithdrawEth0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/fee", _App_AdminFee0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/all", _App_AdminAll0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/user_recommend", _App_AdminUserRecommend0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/month_recommend", _App_AdminMonthRecommend0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/user_month_recommend", _App_AdminUserMonthRecommend0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/config", _App_AdminConfig0_HTTP_Handler(srv))
+	r.POST("/api/admin_dhb/config_update", _App_AdminConfigUpdate0_HTTP_Handler(srv))
 }
 
 func _App_EthAuthorize0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
@@ -207,6 +225,25 @@ func _App_WithdrawList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) e
 			return err
 		}
 		reply := out.(*WithdrawListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_RecommendList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RecommendListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppRecommendList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RecommendList(ctx, req.(*RecommendListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RecommendListReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -388,18 +425,122 @@ func _App_AdminAll0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error
 	}
 }
 
+func _App_AdminUserRecommend0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminUserRecommendRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminUserRecommend)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminUserRecommend(ctx, req.(*AdminUserRecommendRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminUserRecommendReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_AdminMonthRecommend0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminMonthRecommendRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminMonthRecommend)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminMonthRecommend(ctx, req.(*AdminMonthRecommendRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminMonthRecommendReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_AdminUserMonthRecommend0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminUserMonthRecommendRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminUserMonthRecommend)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminUserMonthRecommend(ctx, req.(*AdminUserMonthRecommendRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminUserMonthRecommendReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_AdminConfig0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminConfigRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminConfig(ctx, req.(*AdminConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminConfigReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_AdminConfigUpdate0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AdminConfigUpdateRequest
+		if err := ctx.Bind(&in.SendBody); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppAdminConfigUpdate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AdminConfigUpdate(ctx, req.(*AdminConfigUpdateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AdminConfigUpdateReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AppHTTPClient interface {
 	AdminAll(ctx context.Context, req *AdminAllRequest, opts ...http.CallOption) (rsp *AdminAllReply, err error)
+	AdminConfig(ctx context.Context, req *AdminConfigRequest, opts ...http.CallOption) (rsp *AdminConfigReply, err error)
+	AdminConfigUpdate(ctx context.Context, req *AdminConfigUpdateRequest, opts ...http.CallOption) (rsp *AdminConfigUpdateReply, err error)
 	AdminFee(ctx context.Context, req *AdminFeeRequest, opts ...http.CallOption) (rsp *AdminFeeReply, err error)
 	AdminLocationList(ctx context.Context, req *AdminLocationListRequest, opts ...http.CallOption) (rsp *AdminLocationListReply, err error)
+	AdminMonthRecommend(ctx context.Context, req *AdminMonthRecommendRequest, opts ...http.CallOption) (rsp *AdminMonthRecommendReply, err error)
 	AdminRewardList(ctx context.Context, req *AdminRewardListRequest, opts ...http.CallOption) (rsp *AdminRewardListReply, err error)
 	AdminUserList(ctx context.Context, req *AdminUserListRequest, opts ...http.CallOption) (rsp *AdminUserListReply, err error)
+	AdminUserMonthRecommend(ctx context.Context, req *AdminUserMonthRecommendRequest, opts ...http.CallOption) (rsp *AdminUserMonthRecommendReply, err error)
+	AdminUserRecommend(ctx context.Context, req *AdminUserRecommendRequest, opts ...http.CallOption) (rsp *AdminUserRecommendReply, err error)
 	AdminWithdraw(ctx context.Context, req *AdminWithdrawRequest, opts ...http.CallOption) (rsp *AdminWithdrawReply, err error)
 	AdminWithdrawEth(ctx context.Context, req *AdminWithdrawEthRequest, opts ...http.CallOption) (rsp *AdminWithdrawEthReply, err error)
 	AdminWithdrawList(ctx context.Context, req *AdminWithdrawListRequest, opts ...http.CallOption) (rsp *AdminWithdrawListReply, err error)
 	Deposit(ctx context.Context, req *DepositRequest, opts ...http.CallOption) (rsp *DepositReply, err error)
 	EthAuthorize(ctx context.Context, req *EthAuthorizeRequest, opts ...http.CallOption) (rsp *EthAuthorizeReply, err error)
 	FeeRewardList(ctx context.Context, req *FeeRewardListRequest, opts ...http.CallOption) (rsp *FeeRewardListReply, err error)
+	RecommendList(ctx context.Context, req *RecommendListRequest, opts ...http.CallOption) (rsp *RecommendListReply, err error)
 	RecommendRewardList(ctx context.Context, req *RecommendRewardListRequest, opts ...http.CallOption) (rsp *RecommendRewardListReply, err error)
 	RewardList(ctx context.Context, req *RewardListRequest, opts ...http.CallOption) (rsp *RewardListReply, err error)
 	UserInfo(ctx context.Context, req *UserInfoRequest, opts ...http.CallOption) (rsp *UserInfoReply, err error)
@@ -422,6 +563,32 @@ func (c *AppHTTPClientImpl) AdminAll(ctx context.Context, in *AdminAllRequest, o
 	opts = append(opts, http.Operation(OperationAppAdminAll))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) AdminConfig(ctx context.Context, in *AdminConfigRequest, opts ...http.CallOption) (*AdminConfigReply, error) {
+	var out AdminConfigReply
+	pattern := "/api/admin_dhb/config"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) AdminConfigUpdate(ctx context.Context, in *AdminConfigUpdateRequest, opts ...http.CallOption) (*AdminConfigUpdateReply, error) {
+	var out AdminConfigUpdateReply
+	pattern := "/api/admin_dhb/config_update"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAppAdminConfigUpdate))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in.SendBody, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -454,6 +621,19 @@ func (c *AppHTTPClientImpl) AdminLocationList(ctx context.Context, in *AdminLoca
 	return &out, err
 }
 
+func (c *AppHTTPClientImpl) AdminMonthRecommend(ctx context.Context, in *AdminMonthRecommendRequest, opts ...http.CallOption) (*AdminMonthRecommendReply, error) {
+	var out AdminMonthRecommendReply
+	pattern := "/api/admin_dhb/month_recommend"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminMonthRecommend))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
 func (c *AppHTTPClientImpl) AdminRewardList(ctx context.Context, in *AdminRewardListRequest, opts ...http.CallOption) (*AdminRewardListReply, error) {
 	var out AdminRewardListReply
 	pattern := "/api/admin_dhb/reward_list"
@@ -472,6 +652,32 @@ func (c *AppHTTPClientImpl) AdminUserList(ctx context.Context, in *AdminUserList
 	pattern := "/api/admin_dhb/user_list"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppAdminUserList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) AdminUserMonthRecommend(ctx context.Context, in *AdminUserMonthRecommendRequest, opts ...http.CallOption) (*AdminUserMonthRecommendReply, error) {
+	var out AdminUserMonthRecommendReply
+	pattern := "/api/admin_dhb/user_month_recommend"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminUserMonthRecommend))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) AdminUserRecommend(ctx context.Context, in *AdminUserRecommendRequest, opts ...http.CallOption) (*AdminUserRecommendReply, error) {
+	var out AdminUserRecommendReply
+	pattern := "/api/admin_dhb/user_recommend"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppAdminUserRecommend))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -550,6 +756,19 @@ func (c *AppHTTPClientImpl) FeeRewardList(ctx context.Context, in *FeeRewardList
 	pattern := "/api/app_server/fee_reward_list"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppFeeRewardList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) RecommendList(ctx context.Context, in *RecommendListRequest, opts ...http.CallOption) (*RecommendListReply, error) {
+	var out RecommendListReply
+	pattern := "/api/app_server/recommend_list"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppRecommendList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

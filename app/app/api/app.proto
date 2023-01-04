@@ -54,6 +54,12 @@ service App {
 		};
 	};
 
+	rpc RecommendList (RecommendListRequest) returns (RecommendListReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/recommend_list"
+		};
+	};
+
 	rpc Withdraw (WithdrawRequest) returns (WithdrawReply) {
 		option (google.api.http) = {
 			post: "/api/app_server/withdraw"
@@ -109,6 +115,38 @@ service App {
 			get: "/api/admin_dhb/all"
 		};
 	};
+
+	rpc AdminUserRecommend (AdminUserRecommendRequest) returns (AdminUserRecommendReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/user_recommend"
+		};
+	};
+
+	rpc AdminMonthRecommend (AdminMonthRecommendRequest) returns (AdminMonthRecommendReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/month_recommend"
+		};
+	};
+
+	rpc AdminUserMonthRecommend (AdminUserMonthRecommendRequest) returns (AdminUserMonthRecommendReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/user_month_recommend"
+		};
+	};
+
+	rpc AdminConfig (AdminConfigRequest) returns (AdminConfigReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/config"
+		};
+	};
+
+	rpc AdminConfigUpdate (AdminConfigUpdateRequest) returns (AdminConfigUpdateReply) {
+		option (google.api.http) = {
+			post: "/api/admin_dhb/config_update"
+			body: "send_body"
+		};
+	};
+
 }
 
 message EthAuthorizeRequest {
@@ -159,6 +197,8 @@ message UserInfoReply {
 	string usdt = 20;
 	string dhb = 21;
 	string account = 22;
+	int64 recommendNumAll = 24;
+	int64 recommendTeamAll = 25;
 }
 
 message RewardListRequest {
@@ -210,6 +250,18 @@ message WithdrawListReply {
 		string amount = 2;
 		string type = 3;
 		string status=4;
+	}
+}
+
+message RecommendListRequest {
+	string type = 1;
+}
+
+message RecommendListReply {
+	repeated List recommends = 1;
+	message List {
+		string amount = 2;
+		string status = 3;
 	}
 }
 
@@ -338,4 +390,76 @@ message AdminAllReply {
 	string allWithdraw = 7;
 	string allReward = 8;
 	string allSystemRewardAndFee = 9;
+}
+
+message AdminUserRecommendRequest {
+	int64 userId = 1;
+	int64 page = 2;
+}
+
+message AdminUserRecommendReply {
+	repeated List users = 1;
+	message List {
+		string address = 3;
+		int64  id = 2;
+		string created_at = 1;
+	}
+	int64 count = 2;
+}
+
+message AdminMonthRecommendRequest {
+	int64 page = 2;
+}
+
+message AdminMonthRecommendReply {
+	repeated List users = 1;
+	message List {
+		string address = 3;
+		int64  id = 2;
+		string created_at = 1;
+	}
+	int64 count = 2;
+}
+
+message AdminUserMonthRecommendRequest {
+	int64 userId = 1;
+	int64 page = 2;
+}
+
+message AdminUserMonthRecommendReply {
+	repeated List users = 1;
+	message List {
+		string address = 3;
+		int64  id = 2;
+		string created_at = 1;
+	}
+	int64 count = 2;
+}
+
+message AdminConfigRequest {
+	int64 userId = 1;
+	int64 page = 2;
+}
+
+message AdminConfigReply {
+	repeated List config = 1;
+	message List {
+		int64 id = 1;
+		string name = 3;
+		string value = 2;
+	}
+	int64 count = 2;
+}
+
+message AdminConfigUpdateRequest {
+	message SendBody{
+		int64 id = 1;
+		int64 value = 2;
+	}
+
+	SendBody send_body = 1;
+}
+
+message AdminConfigUpdateReply {
+
 }

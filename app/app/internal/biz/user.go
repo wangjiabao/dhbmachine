@@ -960,7 +960,7 @@ func (uuc *UserUseCase) AdminAll(ctx context.Context, req *v1.AdminAllRequest) (
 	userCount, _ = uuc.repo.GetUserCount(ctx)
 	userTodayCount, _ = uuc.repo.GetUserCountToday(ctx)
 	userBalanceUsdtTotal, _ = uuc.ubRepo.GetUserBalanceUsdtTotal(ctx)
-	userBalanceUsdtTotal, _ = uuc.ubRepo.GetUserBalanceRecordUsdtTotal(ctx)
+	userBalanceRecordUsdtTotal, _ = uuc.ubRepo.GetUserBalanceRecordUsdtTotal(ctx)
 	userBalanceRecordUsdtTotalToday, _ = uuc.ubRepo.GetUserBalanceRecordUsdtTotalToday(ctx)
 	userWithdrawUsdtTotalToday, _ = uuc.ubRepo.GetUserWithdrawUsdtTotalToday(ctx)
 	userWithdrawUsdtTotal, _ = uuc.ubRepo.GetUserWithdrawUsdtTotal(ctx)
@@ -1125,29 +1125,30 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 				tmpMyRecommendAmount = currentValue / 100 * 4
 			}
 
-			tmpBalanceAmount := tmpMyRecommendAmount
-			tmpCurrent := myUserRecommendUserLocationLast.Current
-			myUserRecommendUserLocationLast.Current += tmpMyRecommendAmount
+			if "running" == myUserRecommendUserLocationLast.Status {
+				tmpBalanceAmount := tmpMyRecommendAmount
+				tmpCurrent := myUserRecommendUserLocationLast.Current
+				myUserRecommendUserLocationLast.Current += tmpMyRecommendAmount
 
-			if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
-				tmpBalanceAmount = myUserRecommendUserLocationLast.CurrentMax - tmpCurrent
-				myUserRecommendUserLocationLast.Current = myUserRecommendUserLocationLast.CurrentMax
-				myUserRecommendUserLocationLast.Status = "stop"
-			}
+				if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
+					tmpBalanceAmount = myUserRecommendUserLocationLast.CurrentMax - tmpCurrent
+					myUserRecommendUserLocationLast.Current = myUserRecommendUserLocationLast.CurrentMax
+					myUserRecommendUserLocationLast.Status = "stop"
+				}
 
-			myUserRecommendUserLocationLast, err = uuc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast) // 分红占位数据修改
-			if nil != err {
-				return err
-			}
-
-			if 0 < tmpBalanceAmount { // 扣除推荐人分红
-				_, err = uuc.ubRepo.RecommendWithdrawReward(ctx, myUserRecommendUserId, tmpBalanceAmount, myLocationLast.ID) // 推荐人奖励
+				_, err = uuc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast) // 分红占位数据修改
 				if nil != err {
 					return err
 				}
-				systemAmount -= tmpBalanceAmount
-			}
 
+				if 0 < tmpBalanceAmount { // 扣除推荐人分红
+					_, err = uuc.ubRepo.RecommendWithdrawReward(ctx, myUserRecommendUserId, tmpBalanceAmount, myLocationLast.ID) // 推荐人奖励
+					if nil != err {
+						return err
+					}
+					systemAmount -= tmpBalanceAmount
+				}
+			}
 		}
 
 		err = uuc.ubRepo.WithdrawUsdt(ctx, withdraw.UserId, withdrawAmount) // 提现

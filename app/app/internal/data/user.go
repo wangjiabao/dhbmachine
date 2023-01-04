@@ -285,7 +285,7 @@ func (u *UserRepo) GetUserCount(ctx context.Context) (int64, error) {
 // GetUserCountToday .
 func (u *UserRepo) GetUserCountToday(ctx context.Context) (int64, error) {
 	var count int64
-	now := time.Now().UTC().Add(8 * time.Hour)
+	now := time.Now().UTC()
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	todayEnd := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, time.UTC)
 
@@ -1299,7 +1299,7 @@ func (ub UserBalanceRepo) GetUserBalanceRecordUsdtTotal(ctx context.Context) (in
 // GetUserBalanceRecordUsdtTotalToday .
 func (ub UserBalanceRepo) GetUserBalanceRecordUsdtTotalToday(ctx context.Context) (int64, error) {
 	var total UserBalanceTotal
-	now := time.Now().UTC().Add(8 * time.Hour)
+	now := time.Now().UTC()
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	todayEnd := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, time.UTC)
 	if err := ub.data.db.Table("user_balance_record").
@@ -1320,7 +1320,7 @@ func (ub UserBalanceRepo) GetUserBalanceRecordUsdtTotalToday(ctx context.Context
 // GetUserWithdrawUsdtTotalToday .
 func (ub UserBalanceRepo) GetUserWithdrawUsdtTotalToday(ctx context.Context) (int64, error) {
 	var total UserBalanceTotal
-	now := time.Now().UTC().Add(8 * time.Hour)
+	now := time.Now().UTC()
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	todayEnd := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, time.UTC)
 	if err := ub.data.db.Table("user_balance_record").

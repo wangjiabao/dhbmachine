@@ -267,28 +267,30 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 							return err
 						}
 
-						tmpBalanceAmount := currentValue / 100 * 20
-						tmpCurrent := myUserRecommendUserLocationLast.Current
-						myUserRecommendUserLocationLast.Current += currentValue / 100 * 20
+						if "running" == myUserRecommendUserLocationLast.Status {
+							tmpBalanceAmount := currentValue / 100 * 20
+							tmpCurrent := myUserRecommendUserLocationLast.Current
+							myUserRecommendUserLocationLast.Current += currentValue / 100 * 20
 
-						if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
-							tmpBalanceAmount = myUserRecommendUserLocationLast.CurrentMax - tmpCurrent
-							myUserRecommendUserLocationLast.Current = myUserRecommendUserLocationLast.CurrentMax
-							myUserRecommendUserLocationLast.Status = "stop"
-						}
+							if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
+								tmpBalanceAmount = myUserRecommendUserLocationLast.CurrentMax - tmpCurrent
+								myUserRecommendUserLocationLast.Current = myUserRecommendUserLocationLast.CurrentMax
+								myUserRecommendUserLocationLast.Status = "stop"
+							}
 
-						myUserRecommendUserLocationLast, err = ruc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast) // 分红占位数据修改
-						if nil != err {
-							return err
-						}
-
-						if 0 < tmpBalanceAmount {
-							_, err = ruc.userBalanceRepo.FirstRecommendReward(ctx, myUserRecommendUserId, tmpBalanceAmount, currentLocation.ID) // 直推人奖励
+							_, err = ruc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast) // 分红占位数据修改
 							if nil != err {
 								return err
 							}
 
-							amount -= tmpBalanceAmount // 扣除
+							if 0 < tmpBalanceAmount {
+								_, err = ruc.userBalanceRepo.FirstRecommendReward(ctx, myUserRecommendUserId, tmpBalanceAmount, currentLocation.ID) // 直推人奖励
+								if nil != err {
+									return err
+								}
+
+								amount -= tmpBalanceAmount // 扣除
+							}
 						}
 
 						_, err = ruc.userCurrentMonthRecommendRepo.CreateUserCurrentMonthRecommend(ctx, &UserCurrentMonthRecommend{ // 直推人本月推荐人数
@@ -315,29 +317,30 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 					}
 					if 0 < tmpMyRecommendAmount { // 扣除推荐人分红
 
-						tmpBalanceAmount := tmpMyRecommendAmount
-						tmpCurrent := myUserRecommendUserLocationLast.Current
-						myUserRecommendUserLocationLast.Current += tmpMyRecommendAmount
+						if "running" == myUserRecommendUserLocationLast.Status {
+							tmpBalanceAmount := tmpMyRecommendAmount
+							tmpCurrent := myUserRecommendUserLocationLast.Current
+							myUserRecommendUserLocationLast.Current += tmpMyRecommendAmount
 
-						if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
-							tmpBalanceAmount = myUserRecommendUserLocationLast.CurrentMax - tmpCurrent
-							myUserRecommendUserLocationLast.Current = myUserRecommendUserLocationLast.CurrentMax
-							myUserRecommendUserLocationLast.Status = "stop"
-						}
+							if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
+								tmpBalanceAmount = myUserRecommendUserLocationLast.CurrentMax - tmpCurrent
+								myUserRecommendUserLocationLast.Current = myUserRecommendUserLocationLast.CurrentMax
+								myUserRecommendUserLocationLast.Status = "stop"
+							}
 
-						myUserRecommendUserLocationLast, err = ruc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast) // 分红占位数据修改
-						if nil != err {
-							return err
-						}
-
-						if 0 < tmpBalanceAmount {
-							_, err = ruc.userBalanceRepo.RecommendReward(ctx, myUserRecommendUserId, tmpBalanceAmount, currentLocation.ID) // 推荐人奖励
+							_, err = ruc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast) // 分红占位数据修改
 							if nil != err {
 								return err
 							}
-							amount -= tmpBalanceAmount
-						}
 
+							if 0 < tmpBalanceAmount {
+								_, err = ruc.userBalanceRepo.RecommendReward(ctx, myUserRecommendUserId, tmpBalanceAmount, currentLocation.ID) // 推荐人奖励
+								if nil != err {
+									return err
+								}
+								amount -= tmpBalanceAmount
+							}
+						}
 					}
 				}
 			}
