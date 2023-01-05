@@ -133,6 +133,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 		// 获取当前用户的占位信息，已经有运行中的跳过
 		myLocations, err = ruc.locationRepo.GetLocationsByUserId(ctx, v.UserId)
 		if nil == myLocations { // 查询异常跳过本次循环
+			_, err = ruc.locationRepo.UnLockGlobalLocation(ctx)
 			continue
 		}
 		if 0 < len(myLocations) { // 也代表复投
@@ -145,6 +146,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 			}
 
 			if tmpStatusRunning { // 有运行中直接跳过本次循环
+				_, err = ruc.locationRepo.UnLockGlobalLocation(ctx)
 				continue
 			}
 		}
@@ -198,6 +200,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 			locationCurrentMax = 25000000000000
 			currentValue = 5000000000000
 		} else {
+			_, err = ruc.locationRepo.UnLockGlobalLocation(ctx)
 			continue
 		}
 		amount = currentValue
@@ -208,6 +211,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 		// 推荐人
 		userRecommend, err = ruc.userRecommendRepo.GetUserRecommendByUserId(ctx, v.UserId)
 		if nil != err {
+			_, err = ruc.locationRepo.UnLockGlobalLocation(ctx)
 			continue
 		}
 		if "" != userRecommend.RecommendCode {
@@ -417,6 +421,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 
 			return nil
 		}); nil != err {
+			_, err = ruc.locationRepo.UnLockGlobalLocation(ctx)
 			continue
 		}
 

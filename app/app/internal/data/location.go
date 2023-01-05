@@ -229,7 +229,7 @@ func (lr *LocationRepo) LockGlobalWithdraw(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// getLockGlobalLocation .
+// GetLockGlobalLocation .
 func (lr *LocationRepo) GetLockGlobalLocation(ctx context.Context) (*biz.GlobalLock, error) {
 	var globalLock GlobalLock
 	if res := lr.data.DB(ctx).Where("id=?", 1).
