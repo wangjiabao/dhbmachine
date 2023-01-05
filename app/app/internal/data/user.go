@@ -621,7 +621,7 @@ func (ub *UserBalanceRepo) Deposit(ctx context.Context, userId int64, amount int
 }
 
 // DepositLast .
-func (ub *UserBalanceRepo) DepositLast(ctx context.Context, userId int64, lastAmount int64) (int64, error) {
+func (ub *UserBalanceRepo) DepositLast(ctx context.Context, userId int64, lastAmount int64, locationId int64) (int64, error) {
 	var (
 		err error
 	)
@@ -655,6 +655,13 @@ func (ub *UserBalanceRepo) DepositLast(ctx context.Context, userId int64, lastAm
 	reward.Reason = "last_reward" // 给我分红的理由
 	err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
 	if err != nil {
+		return 0, err
+	}
+
+	res := ub.data.db.Table("location").
+		Where("id=?", locationId).
+		Updates(map[string]interface{}{"stop_location_again": "1"})
+	if 0 == res.RowsAffected || res.Error != nil {
 		return 0, err
 	}
 

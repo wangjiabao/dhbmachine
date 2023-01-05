@@ -109,7 +109,7 @@ type UserBalanceRepo interface {
 	RecommendWithdrawReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
 	NormalRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
 	Deposit(ctx context.Context, userId int64, amount int64) (int64, error)
-	DepositLast(ctx context.Context, userId int64, lastAmount int64) (int64, error)
+	DepositLast(ctx context.Context, userId int64, lastAmount int64, locationId int64) (int64, error)
 	DepositDhb(ctx context.Context, userId int64, amount int64) (int64, error)
 	GetUserBalance(ctx context.Context, userId int64) (*UserBalance, error)
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
@@ -1176,7 +1176,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 							tmpCurrentAmount := vRewardLocations.CurrentMax - tmpCurrent // 最大可分红额度
 							rewardAmount := tmpBalanceAmount
 							if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
-								rewardAmount = tmpBalanceAmount - tmpCurrentAmount
+								rewardAmount = tmpCurrentAmount
 							}
 
 							_, err = uuc.ubRepo.LocationReward(ctx, vRewardLocations.UserId, rewardAmount, myLocationLast.ID, vRewardLocations.ID, locationType) // 分红信息修改
@@ -1219,7 +1219,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 						tmpCurrentAmount := myUserRecommendUserLocationLast.CurrentMax - tmpCurrent // 最大可分红额度
 						rewardAmount := tmpBalanceAmount
 						if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
-							rewardAmount = tmpBalanceAmount - tmpCurrentAmount
+							rewardAmount = tmpCurrentAmount
 						}
 						_, err = uuc.ubRepo.NormalRecommendReward(ctx, myUserRecommendUserId, rewardAmount, myLocationLast.ID) // 直推人奖励
 						if nil != err {
@@ -1266,7 +1266,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 							tmpCurrentAmount := myUserRecommendUserLocationLast.CurrentMax - tmpCurrent // 最大可分红额度
 							rewardAmount := tmpBalanceAmount
 							if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
-								rewardAmount = tmpBalanceAmount - tmpCurrentAmount
+								rewardAmount = tmpCurrentAmount
 							}
 							_, err = uuc.ubRepo.RecommendReward(ctx, myUserRecommendUserId, rewardAmount, myLocationLast.ID) // 推荐人奖励
 							if nil != err {

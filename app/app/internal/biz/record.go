@@ -281,7 +281,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 							tmpCurrentAmount := vRewardLocations.CurrentMax - tmpCurrent // 最大可分红额度
 							rewardAmount := tmpBalanceAmount
 							if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
-								rewardAmount = tmpBalanceAmount - tmpCurrentAmount
+								rewardAmount = tmpCurrentAmount
 							}
 
 							_, err = ruc.userBalanceRepo.LocationReward(ctx, vRewardLocations.UserId, rewardAmount, currentLocation.ID, vRewardLocations.ID, locationType) // 分红信息修改
@@ -352,7 +352,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 						tmpCurrentAmount := myUserRecommendUserLocationLast.CurrentMax - tmpCurrent // 最大可分红额度
 						rewardAmount := tmpBalanceAmount
 						if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
-							rewardAmount = tmpBalanceAmount - tmpCurrentAmount
+							rewardAmount = tmpCurrentAmount
 						}
 						_, err = ruc.userBalanceRepo.NormalRecommendReward(ctx, myUserRecommendUserId, rewardAmount, currentLocation.ID) // 直推人奖励
 						if nil != err {
@@ -399,7 +399,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 							tmpCurrentAmount := myUserRecommendUserLocationLast.CurrentMax - tmpCurrent // 最大可分红额度
 							rewardAmount := tmpBalanceAmount
 							if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
-								rewardAmount = tmpBalanceAmount - tmpCurrentAmount
+								rewardAmount = tmpCurrentAmount
 							}
 							_, err = ruc.userBalanceRepo.RecommendReward(ctx, myUserRecommendUserId, rewardAmount, currentLocation.ID) // 推荐人奖励
 							if nil != err {
@@ -416,12 +416,11 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 				return err
 			}
 
-			if 0 < locationCurrent {
-				_, err = ruc.userBalanceRepo.DepositLast(ctx, v.UserId, locationCurrent) // 充值
+			if 0 < locationCurrent && nil != myLastStopLocation {
+				_, err = ruc.userBalanceRepo.DepositLast(ctx, v.UserId, locationCurrent, myLastStopLocation.ID) // 充值
 				if nil != err {
 					return err
 				}
-
 			}
 
 			err = ruc.userBalanceRepo.SystemReward(ctx, amount, currentLocation.ID)
