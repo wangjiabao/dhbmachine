@@ -1043,8 +1043,8 @@ func (ub *UserBalanceRepo) RecommendWithdrawReward(ctx context.Context, userId i
 	return userBalanceRecode.ID, nil
 }
 
-// FirstRecommendReward .
-func (ub *UserBalanceRepo) FirstRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error) {
+// NormalRecommendReward .
+func (ub *UserBalanceRepo) NormalRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error) {
 	var err error
 	if err = ub.data.DB(ctx).Table("user_balance").
 		Where("user_id=?", userId).
