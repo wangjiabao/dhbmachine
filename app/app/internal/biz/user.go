@@ -574,7 +574,8 @@ func (uuc *UserUseCase) WithdrawList(ctx context.Context, user *User) (*v1.Withd
 
 func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, user *User) (*v1.WithdrawReply, error) {
 	var (
-		err error
+		err         error
+		userBalance *UserBalance
 	)
 
 	if "dhb" != req.SendBody.Type && "usdt" != req.SendBody.Type {
@@ -583,10 +584,27 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		}, nil
 	}
 
+	userBalance, err = uuc.ubRepo.GetUserBalance(ctx, user.ID)
+	if nil != err {
+		return nil, err
+	}
+
 	amountFloat, _ := strconv.ParseFloat(req.SendBody.Amount, 10)
 	amountFloat *= 10000000000
 	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
 	if 0 >= amount {
+		return &v1.WithdrawReply{
+			Status: "fail",
+		}, nil
+	}
+
+	if "dhb" == req.SendBody.Type && userBalance.BalanceDhb < amount {
+		return &v1.WithdrawReply{
+			Status: "fail",
+		}, nil
+	}
+
+	if "usdt" == req.SendBody.Type && userBalance.BalanceUsdt < amount {
 		return &v1.WithdrawReply{
 			Status: "fail",
 		}, nil
@@ -1010,7 +1028,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 		err             error
 	)
 
-	time.Sleep(30 * time.Second) // 错开时间和充值
+	time.Sleep(20 * time.Second) // 错开时间和充值
 
 	// todo 全局锁
 	//for i := 0; i < 3; i++ {
@@ -1028,7 +1046,6 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 	withdrawNotDeal, err = uuc.ubRepo.GetWithdrawNotDeal(ctx)
 	if nil == withdrawNotDeal {
 		//_, _ = uuc.locationRepo.UnLockGlobalWithdraw(ctx)
-
 		return &v1.AdminWithdrawReply{}, nil
 	}
 
@@ -1100,6 +1117,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 		myUserRecommendUserInfo, err = uuc.uiRepo.GetUserInfoByUserId(ctx, myUserRecommendUserId)
 
 		if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+			fmt.Println(withdraw.Amount)
 			currentValue -= withdraw.Amount / 100 * 5 // 手续费
 
 			// 手续费记录
@@ -1111,6 +1129,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 			currentValue = currentValue / 100 * 50 // 百分之50重新分配
 			withdrawAmount = currentValue
 			systemAmount = currentValue
+			fmt.Println(withdrawAmount)
 			// 占位分红人分红
 			if nil != rewardLocations {
 				for _, vRewardLocations := range rewardLocations {
@@ -1133,58 +1152,82 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 						continue
 					}
 
+					tmpCurrentStatus := vRewardLocations.Status // 现在还在运行中
+					tmpCurrent := vRewardLocations.Current
+
 					tmpBalanceAmount := tmpAmount
-					tmpStatus := "running"
+					vRewardLocations.Status = "running"
 					vRewardLocations.Current += tmpAmount
 					if vRewardLocations.Current >= vRewardLocations.CurrentMax { // 占位分红人分满停止
-						tmpStatus = "stop"
-						vRewardLocations.StopDate = time.Now().UTC().Add(8 * time.Hour)
+						vRewardLocations.Status = "stop"
+						if "running" == tmpCurrentStatus {
+							vRewardLocations.StopDate = time.Now().UTC().Add(8 * time.Hour)
+						}
 					}
 
 					if 0 < tmpBalanceAmount {
-						err = uuc.locationRepo.UpdateLocation(ctx, vRewardLocations.ID, tmpStatus, tmpBalanceAmount, vRewardLocations.StopDate) // 分红占位数据修改
+						err = uuc.locationRepo.UpdateLocation(ctx, vRewardLocations.ID, vRewardLocations.Status, tmpBalanceAmount, vRewardLocations.StopDate) // 分红占位数据修改
 						if nil != err {
 							return err
 						}
-						_, err = uuc.ubRepo.WithdrawReward(ctx, vRewardLocations.UserId, tmpBalanceAmount, myLocationLast.ID, vRewardLocations.ID, locationType) // 分红信息修改
-						if nil != err {
-							return err
-						}
-
 						systemAmount -= tmpBalanceAmount // 占位分红后剩余金额
+
+						if 0 < tmpBalanceAmount && "running" == tmpCurrentStatus && tmpCurrent < vRewardLocations.CurrentMax { // 这次还能分红
+							tmpCurrentAmount := vRewardLocations.CurrentMax - tmpCurrent // 最大可分红额度
+							rewardAmount := tmpBalanceAmount
+							if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
+								rewardAmount = tmpBalanceAmount - tmpCurrentAmount
+							}
+
+							_, err = uuc.ubRepo.LocationReward(ctx, vRewardLocations.UserId, rewardAmount, myLocationLast.ID, vRewardLocations.ID, locationType) // 分红信息修改
+							if nil != err {
+								return err
+							}
+						}
 					}
 				}
 			}
 
 			// 获取当前用户的占位信息，已经有运行中的跳过
 			if nil != myUserRecommendUserInfo {
-				myUserRecommendUserLocationLast, err = uuc.locationRepo.GetMyLocationRunningLast(ctx, myUserRecommendUserInfo.UserId)
-				if nil != myUserRecommendUserLocationLast { // 无占位信息
+				// 有占位信息
+				myUserRecommendUserLocationLast, err = uuc.locationRepo.GetMyLocationLast(ctx, myUserRecommendUserInfo.UserId)
+				if nil != myUserRecommendUserLocationLast {
+					tmpStatus := myUserRecommendUserLocationLast.Status // 现在还在运行中
+					tmpCurrent := myUserRecommendUserLocationLast.Current
 
-					if "running" == myUserRecommendUserLocationLast.Status {
-						tmpBalanceAmount := currentValue / 100 * 20
-						myUserRecommendUserLocationLast.Status = "running"
-						myUserRecommendUserLocationLast.Current += tmpBalanceAmount
-						if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
-							myUserRecommendUserLocationLast.Status = "stop"
+					tmpBalanceAmount := currentValue / 100 * 20 // 记录下一次
+					myUserRecommendUserLocationLast.Status = "running"
+					myUserRecommendUserLocationLast.Current += tmpBalanceAmount
+					if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
+						myUserRecommendUserLocationLast.Status = "stop"
+						if "running" == tmpStatus {
 							myUserRecommendUserLocationLast.StopDate = time.Now().UTC().Add(8 * time.Hour)
 						}
-
-						if 0 < tmpBalanceAmount {
-							err = uuc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast.ID, myUserRecommendUserLocationLast.Status, tmpBalanceAmount, myUserRecommendUserLocationLast.StopDate) // 分红占位数据修改
-							if nil != err {
-								return err
-							}
-							_, err = uuc.ubRepo.NormalRecommendReward(ctx, myUserRecommendUserId, tmpBalanceAmount, myLocationLast.ID) // 直推人奖励
-							if nil != err {
-								return err
-							}
-
-							systemAmount -= tmpBalanceAmount // 扣除
+					}
+					if 0 < tmpBalanceAmount {
+						err = uuc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast.ID, myUserRecommendUserLocationLast.Status, tmpBalanceAmount, myUserRecommendUserLocationLast.StopDate) // 分红占位数据修改
+						if nil != err {
+							return err
 						}
 					}
+					systemAmount -= tmpBalanceAmount // 扣除
 
-					// 推荐人
+					if 0 < tmpBalanceAmount && "running" == tmpStatus && tmpCurrent < myUserRecommendUserLocationLast.CurrentMax { // 这次还能分红
+						tmpCurrentAmount := myUserRecommendUserLocationLast.CurrentMax - tmpCurrent // 最大可分红额度
+						rewardAmount := tmpBalanceAmount
+						if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
+							rewardAmount = tmpBalanceAmount - tmpCurrentAmount
+						}
+						_, err = uuc.ubRepo.NormalRecommendReward(ctx, myUserRecommendUserId, rewardAmount, myLocationLast.ID) // 直推人奖励
+						if nil != err {
+							return err
+						}
+
+					}
+				}
+
+				if nil != myUserRecommendUserLocationLast {
 					var tmpMyRecommendAmount int64
 					if 5 == myUserRecommendUserInfo.Vip { // 会员等级分红
 						tmpMyRecommendAmount = currentValue / 100 * 20
@@ -1197,35 +1240,43 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 					} else if 1 == myUserRecommendUserInfo.Vip {
 						tmpMyRecommendAmount = currentValue / 100 * 4
 					}
-
 					if 0 < tmpMyRecommendAmount { // 扣除推荐人分红
+						tmpStatus := myUserRecommendUserLocationLast.Status // 现在还在运行中
+						tmpCurrent := myUserRecommendUserLocationLast.Current
 
-						if "running" == myUserRecommendUserLocationLast.Status {
-							tmpBalanceAmount := tmpMyRecommendAmount
-							myUserRecommendUserLocationLast.Status = "running"
-							myUserRecommendUserLocationLast.Current += tmpBalanceAmount
-							if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
-								myUserRecommendUserLocationLast.Status = "stop"
+						tmpBalanceAmount := tmpMyRecommendAmount // 记录下一次
+						myUserRecommendUserLocationLast.Status = "running"
+						myUserRecommendUserLocationLast.Current += tmpBalanceAmount
+						if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
+							myUserRecommendUserLocationLast.Status = "stop"
+							if "running" == tmpStatus {
 								myUserRecommendUserLocationLast.StopDate = time.Now().UTC().Add(8 * time.Hour)
 							}
-
-							if 0 < tmpBalanceAmount {
-								err = uuc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast.ID, myUserRecommendUserLocationLast.Status, tmpBalanceAmount, myUserRecommendUserLocationLast.StopDate) // 分红占位数据修改
-								if nil != err {
-									return err
-								}
-								_, err = uuc.ubRepo.RecommendWithdrawReward(ctx, myUserRecommendUserId, tmpBalanceAmount, myLocationLast.ID) // 推荐人奖励
-								if nil != err {
-									return err
-								}
-
-								systemAmount -= tmpBalanceAmount
+						}
+						if 0 < tmpBalanceAmount {
+							err = uuc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast.ID, myUserRecommendUserLocationLast.Status, tmpBalanceAmount, myUserRecommendUserLocationLast.StopDate) // 分红占位数据修改
+							if nil != err {
+								return err
 							}
+						}
+						systemAmount -= tmpBalanceAmount                                                                               // 扣除                                                                                    // 扣除
+						if 0 < tmpBalanceAmount && "running" == tmpStatus && tmpCurrent < myUserRecommendUserLocationLast.CurrentMax { // 这次还能分红
+							tmpCurrentAmount := myUserRecommendUserLocationLast.CurrentMax - tmpCurrent // 最大可分红额度
+							rewardAmount := tmpBalanceAmount
+							if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
+								rewardAmount = tmpBalanceAmount - tmpCurrentAmount
+							}
+							_, err = uuc.ubRepo.RecommendReward(ctx, myUserRecommendUserId, rewardAmount, myLocationLast.ID) // 推荐人奖励
+							if nil != err {
+								return err
+							}
+
 						}
 					}
 				}
 			}
 
+			fmt.Println(withdrawAmount)
 			err = uuc.ubRepo.WithdrawUsdt(ctx, withdraw.UserId, withdrawAmount) // 提现
 			if nil != err {
 				return err

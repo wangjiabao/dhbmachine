@@ -264,7 +264,9 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 					vRewardLocations.Status = "running"
 					vRewardLocations.Current += tmpAmount
 					if vRewardLocations.Current >= vRewardLocations.CurrentMax { // 占位分红人分满停止
-						vRewardLocations.StopDate = time.Now().UTC().Add(8 * time.Hour)
+						if "running" == tmpCurrentStatus {
+							vRewardLocations.StopDate = time.Now().UTC().Add(8 * time.Hour)
+						}
 						vRewardLocations.Status = "stop"
 					}
 
@@ -334,7 +336,9 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 					myUserRecommendUserLocationLast.Current += tmpBalanceAmount
 					if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
 						myUserRecommendUserLocationLast.Status = "stop"
-						myUserRecommendUserLocationLast.StopDate = time.Now().UTC().Add(8 * time.Hour)
+						if "running" == tmpStatus {
+							myUserRecommendUserLocationLast.StopDate = time.Now().UTC().Add(8 * time.Hour)
+						}
 					}
 					if 0 < tmpBalanceAmount {
 						err = ruc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast.ID, myUserRecommendUserLocationLast.Status, tmpBalanceAmount, myUserRecommendUserLocationLast.StopDate) // 分红占位数据修改
@@ -380,7 +384,9 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 						myUserRecommendUserLocationLast.Current += tmpBalanceAmount
 						if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
 							myUserRecommendUserLocationLast.Status = "stop"
-							myUserRecommendUserLocationLast.StopDate = time.Now().UTC().Add(8 * time.Hour)
+							if "running" == tmpStatus {
+								myUserRecommendUserLocationLast.StopDate = time.Now().UTC().Add(8 * time.Hour)
+							}
 						}
 						if 0 < tmpBalanceAmount {
 							err = ruc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast.ID, myUserRecommendUserLocationLast.Status, tmpBalanceAmount, myUserRecommendUserLocationLast.StopDate) // 分红占位数据修改
