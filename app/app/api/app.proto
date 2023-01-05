@@ -198,6 +198,7 @@ message UserInfoReply {
 	string account = 22;
 	int64 recommendNumAll = 24;
 	int64 recommendTeamAll = 25;
+	string amountB = 27;
 }
 
 message RewardListRequest {

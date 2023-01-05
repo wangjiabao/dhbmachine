@@ -917,6 +917,8 @@ components:
                 recommendTeamAll:
                     type: integer
                     format: int64
+                amountB:
+                    type: string
         WithdrawListReply:
             type: object
             properties:

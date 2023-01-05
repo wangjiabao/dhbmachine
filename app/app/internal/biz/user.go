@@ -108,7 +108,7 @@ type UserBalanceRepo interface {
 	UserFee(ctx context.Context, userId int64, amount int64) (int64, error)
 	RecommendWithdrawReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
 	NormalRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
-	Deposit(ctx context.Context, userId int64, amount int64) (int64, error)
+	Deposit(ctx context.Context, userId int64, amount int64, lastAmount int64) (int64, error)
 	DepositDhb(ctx context.Context, userId int64, amount int64) (int64, error)
 	GetUserBalance(ctx context.Context, userId int64) (*UserBalance, error)
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
@@ -277,6 +277,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		status                     string
 		currentMonthRecommendNum   int64
 		configs                    []*Config
+		myLastStopLocation         *Location
+		myLastLocationCurrent      int64
+		hasRunningLocation         bool
 		level1Dhb                  string
 		level2Dhb                  string
 		level3Dhb                  string
@@ -301,11 +304,18 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	for _, v := range locations {
 		if "running" == v.Status {
 			status = "running"
+			hasRunningLocation = true
 			amount = fmt.Sprintf("%.2f", float64(v.CurrentMax-v.Current)/float64(10000000000))
 			myCol = v.Col
 			myRow = v.Row
 			break
 		}
+	}
+
+	now := time.Now().UTC().Add(8 * time.Hour)
+	myLastStopLocation, err = uuc.locationRepo.GetMyStopLocationLast(ctx, myUser.ID) // 冻结
+	if nil != myLastStopLocation && now.Before(myLastStopLocation.StopDate.Add(24*time.Hour)) && !hasRunningLocation {
+		myLastLocationCurrent = myLastStopLocation.Current - myLastStopLocation.CurrentMax // 补上
 	}
 
 	userBalance, err = uuc.ubRepo.GetUserBalance(ctx, myUser.ID)
@@ -377,7 +387,6 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	// 当月推荐人数
 	userCurrentMonthRecommends, err = uuc.userCurrentMonthRecommendRepo.GetUserCurrentMonthRecommendByUserId(ctx, myUser.ID)
 	if nil != userCurrentMonthRecommends {
-		now := time.Now().UTC().Add(8 * time.Hour)
 		for _, vUserCurrentMonthRecommend := range userCurrentMonthRecommends {
 			if vUserCurrentMonthRecommend.Date.After(time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)) {
 				currentMonthRecommendNum++
@@ -423,6 +432,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		Usdt:                     "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
 		Dhb:                      "0x96BD81715c69eE013405B4005Ba97eA1f420fd87",
 		Account:                  "0xe865f2e5ff04b8b7952d1c0d9163a91f313b158f",
+		AmountB:                  fmt.Sprintf("%.2f", float64(myLastLocationCurrent)/float64(10000000000)),
 	}, nil
 }
 

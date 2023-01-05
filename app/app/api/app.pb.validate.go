@@ -641,6 +641,8 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for RecommendTeamAll
 
+	// no validation rules for AmountB
+
 	if len(errors) > 0 {
 		return UserInfoReplyMultiError(errors)
 	}
