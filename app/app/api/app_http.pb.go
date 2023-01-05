@@ -82,7 +82,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/admin_dhb/user_list", _App_AdminUserList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/location_list", _App_AdminLocationList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/withdraw_list", _App_AdminWithdrawList0_HTTP_Handler(srv))
-	r.POST("/api/admin_dhb/withdraw", _App_AdminWithdraw0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/withdraw", _App_AdminWithdraw0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/withdraw_eth", _App_AdminWithdrawEth0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/fee", _App_AdminFee0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/all", _App_AdminAll0_HTTP_Handler(srv))
@@ -349,9 +349,6 @@ func _App_AdminWithdrawList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Conte
 func _App_AdminWithdraw0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AdminWithdrawRequest
-		if err := ctx.Bind(&in.SendBody); err != nil {
-			return err
-		}
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
@@ -689,10 +686,10 @@ func (c *AppHTTPClientImpl) AdminUserRecommend(ctx context.Context, in *AdminUse
 func (c *AppHTTPClientImpl) AdminWithdraw(ctx context.Context, in *AdminWithdrawRequest, opts ...http.CallOption) (*AdminWithdrawReply, error) {
 	var out AdminWithdrawReply
 	pattern := "/api/admin_dhb/withdraw"
-	path := binding.EncodeURL(pattern, in, false)
+	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppAdminWithdraw))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in.SendBody, &out, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

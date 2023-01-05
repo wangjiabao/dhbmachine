@@ -93,8 +93,7 @@ service App {
 
 	rpc AdminWithdraw (AdminWithdrawRequest) returns (AdminWithdrawReply) {
 		option (google.api.http) = {
-			post: "/api/admin_dhb/withdraw"
-			body: "send_body"
+			get: "/api/admin_dhb/withdraw"
 		};
 	};
 
@@ -354,15 +353,9 @@ message AdminWithdrawListReply {
 }
 
 message AdminWithdrawRequest {
-	message SendBody{
-		int64 id = 1;
-	}
-
-	SendBody send_body = 1;
 }
 
 message AdminWithdrawReply {
-	string status = 1;
 }
 
 message AdminWithdrawEthRequest {

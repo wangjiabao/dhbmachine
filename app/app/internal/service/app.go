@@ -94,11 +94,12 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 		depositUsers          map[string]*biz.User
 		fromAccount           []string
 		hashKeys              []string
+		//lock                  bool
+		err error
 		//configs               []*biz.Config
 		//level1Dhb             string
 		//level2Dhb             string
 		//level3Dhb             string
-		err error
 	)
 
 	// 配置
@@ -115,9 +116,14 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 	//	}
 	//}
 
+	//if lock, _ = a.ruc.LockEthUserRecordHandle(ctx); !lock { // 上全局锁简单，防止资源更新抢占
+	//	return &v1.DepositReply{}, nil
+	//}
+
 	// 每次一共最多查2000条，所以注意好外层调用的定时查询的时间设置，当然都可以重新定义，
 	// 在功能上调用者查询两种币的交易记录，每次都要把数据覆盖查询，是一个较大范围的查找防止遗漏数据，范围最起码要大于实际这段时间的入单量，不能边界查询容易掉单，这样的实现是因为简单
 	for i := 1; i <= 10; i++ {
+
 		depositUsdtResult, err = requestEthDepositResult(200, int64(i), "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd")
 		// 辅助查询
 		depositDhbResult, err = requestEthDepositResult(200, int64(i), "0x96BD81715c69eE013405B4005Ba97eA1f420fd87")
@@ -215,6 +221,7 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 		//time.Sleep(2 * time.Second)
 	}
 
+	//_, _ = a.ruc.UnLockEthUserRecordHandle(ctx)
 	return &v1.DepositReply{}, nil
 }
 

@@ -18,6 +18,7 @@ type Location struct {
 	CurrentLevel int64     `gorm:"type:int;not null"`
 	Current      int64     `gorm:"type:bigint;not null"`
 	CurrentMax   int64     `gorm:"type:bigint;not null"`
+	StopDate     time.Time `gorm:"type:datetime;not null"`
 	CreatedAt    time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt    time.Time `gorm:"type:datetime;not null"`
 }
@@ -112,11 +113,38 @@ func (lr *LocationRepo) GetMyLocationLast(ctx context.Context, userId int64) (*b
 	}, nil
 }
 
+// GetMyStopLocationLast .
+func (lr *LocationRepo) GetMyStopLocationLast(ctx context.Context, userId int64) (*biz.Location, error) {
+	var location Location
+	if err := lr.data.db.Table("location").
+		Where("status=?", "stop").
+		Where("user_id", userId).Order("id desc").First(&location).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
+		}
+
+		return nil, errors.New(500, "LOCATION ERROR", err.Error())
+	}
+
+	return &biz.Location{
+		ID:           location.ID,
+		UserId:       location.UserId,
+		Status:       location.Status,
+		CurrentLevel: location.CurrentLevel,
+		Current:      location.Current,
+		CurrentMax:   location.CurrentMax,
+		Row:          location.Row,
+		Col:          location.Col,
+		StopDate:     location.StopDate,
+	}, nil
+}
+
 // GetMyLocationRunningLast .
 func (lr *LocationRepo) GetMyLocationRunningLast(ctx context.Context, userId int64) (*biz.Location, error) {
 	var location Location
 	if err := lr.data.db.Table("location").Where("user_id", userId).
-		Where("status=?", "running").Order("id desc").First(&location).Error; err != nil {
+		Where("status=?", "running").
+		Order("id desc").First(&location).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
 		}
@@ -141,7 +169,8 @@ func (lr *LocationRepo) GetLocationsByUserId(ctx context.Context, userId int64) 
 	var locations []*Location
 	res := make([]*biz.Location, 0)
 	if err := lr.data.db.Table("location").
-		Where("user_id=?", userId).Find(&locations).Error; err != nil {
+		Where("user_id=?", userId).
+		Order("id desc").Find(&locations).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return res, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
 		}
@@ -198,35 +227,42 @@ func (lr *LocationRepo) GetLocationsStopNotUpdate(ctx context.Context) ([]*biz.L
 
 // LockGlobalLocation .
 func (lr *LocationRepo) LockGlobalLocation(ctx context.Context) (bool, error) {
-	if res := lr.data.DB(ctx).Where("id=? and status<=?", 1, 2).
+	res := lr.data.DB(ctx).Where("id=? and status<=?", 1, 2).
 		Table("global_lock").
-		Updates(map[string]interface{}{"status": 1}); 0 >= res.RowsAffected || res.Error != nil {
-		return false, res.Error
+		Updates(map[string]interface{}{"status": 1})
+
+	if 0 <= res.RowsAffected {
+		return true, nil
 	}
 
-	return true, nil
+	return false, res.Error
+
 }
 
 // UnLockGlobalLocation .
 func (lr *LocationRepo) UnLockGlobalLocation(ctx context.Context) (bool, error) {
-	if res := lr.data.DB(ctx).Where("id=? and status=?", 1, 1).
+	res := lr.data.DB(ctx).Where("id=? and status=?", 1, 1).
 		Table("global_lock").
-		Updates(map[string]interface{}{"status": 2}); 0 >= res.RowsAffected || res.Error != nil {
-		return false, res.Error
+		Updates(map[string]interface{}{"status": 2})
+
+	if 0 <= res.RowsAffected {
+		return true, nil
 	}
 
-	return true, nil
+	return false, res.Error
 }
 
 // LockGlobalWithdraw .
 func (lr *LocationRepo) LockGlobalWithdraw(ctx context.Context) (bool, error) {
-	if res := lr.data.DB(ctx).Where("id=? and status>=?", 1, 2).
+	res := lr.data.DB(ctx).Where("id=? and status>=?", 1, 2).
 		Table("global_lock").
-		Updates(map[string]interface{}{"status": 3}); 0 >= res.RowsAffected || res.Error != nil {
-		return false, res.Error
+		Updates(map[string]interface{}{"status": 3})
+
+	if 0 <= res.RowsAffected {
+		return true, nil
 	}
 
-	return true, nil
+	return false, res.Error
 }
 
 // GetLockGlobalLocation .
@@ -246,22 +282,36 @@ func (lr *LocationRepo) GetLockGlobalLocation(ctx context.Context) (*biz.GlobalL
 
 // UnLockGlobalWithdraw .
 func (lr *LocationRepo) UnLockGlobalWithdraw(ctx context.Context) (bool, error) {
-	if res := lr.data.DB(ctx).Where("id=? and status=?", 1, 3).
+	res := lr.data.DB(ctx).Where("id=? and status=?", 1, 3).
 		Table("global_lock").
-		Updates(map[string]interface{}{"status": 2}); 0 >= res.RowsAffected || res.Error != nil {
-		return false, res.Error
+		Updates(map[string]interface{}{"status": 2})
+
+	if 0 <= res.RowsAffected {
+		return true, nil
 	}
 
-	return true, nil
+	return false, res.Error
 }
 
 // UpdateLocation .
-func (lr *LocationRepo) UpdateLocation(ctx context.Context, id int64, status string, current int64) error {
-	if res := lr.data.db.Table("location").
-		Where("id=?", id).
-		Where("status=?", "running").
-		Updates(map[string]interface{}{"current": gorm.Expr("current + ?", current), "status": status}); 0 == res.RowsAffected || res.Error != nil {
-		return res.Error
+func (lr *LocationRepo) UpdateLocation(ctx context.Context, id int64, status string, current int64, stopDate time.Time) error {
+
+	if "stop" == status {
+		res := lr.data.db.Table("location").
+			Where("id=?", id).
+			Where("status=?", "running").
+			Updates(map[string]interface{}{"current": gorm.Expr("current + ?", current), "status": "stop", "stop_date": stopDate})
+		if 0 == res.RowsAffected || res.Error != nil {
+			return res.Error
+		}
+	} else {
+		res := lr.data.db.Table("location").
+			Where("id=?", id).
+			Where("status=?", "running").
+			Updates(map[string]interface{}{"current": gorm.Expr("current + ?", current), "status": status})
+		if 0 == res.RowsAffected || res.Error != nil {
+			return res.Error
+		}
 	}
 
 	return nil
