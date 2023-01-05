@@ -31,6 +31,11 @@ type Location struct {
 	CreatedAt    time.Time
 }
 
+type GlobalLock struct {
+	ID     int64
+	Status int64
+}
+
 type RecordUseCase struct {
 	ethUserRecordRepo             EthUserRecordRepo
 	userRecommendRepo             UserRecommendRepo
@@ -63,6 +68,7 @@ type LocationRepo interface {
 	UnLockGlobalLocation(ctx context.Context) (bool, error)
 	LockGlobalWithdraw(ctx context.Context) (bool, error)
 	UnLockGlobalWithdraw(ctx context.Context) (bool, error)
+	GetLockGlobalLocation(ctx context.Context) (*GlobalLock, error)
 }
 
 func NewRecordUseCase(
@@ -433,11 +439,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 		}
 
 		// todo 全局锁
-		lock, err = ruc.locationRepo.UnLockGlobalLocation(ctx)
-		if !lock {
-			time.Sleep(3 * time.Second)
-			continue
-		}
+		_, err = ruc.locationRepo.UnLockGlobalLocation(ctx)
 	}
 
 	return true, nil

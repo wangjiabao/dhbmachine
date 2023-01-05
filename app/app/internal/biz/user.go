@@ -573,10 +573,33 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		myUserRecommendUserId           int64
 		myUserRecommendUserInfo         *UserInfo
 		withdrawAmount                  int64
+		stopLocations                   []*Location
+		lock                            *GlobalLock
 		err                             error
 	)
 
 	if "dhb" != req.SendBody.Type && "usdt" != req.SendBody.Type {
+		return &v1.WithdrawReply{
+			Status: "fail",
+		}, nil
+	}
+
+	// todo 全局锁
+	for i := 0; i < 3; i++ {
+		lock, err = uuc.locationRepo.GetLockGlobalLocation(ctx)
+		if nil == lock {
+			return &v1.WithdrawReply{
+				Status: "fail",
+			}, nil
+		}
+
+		if 2 == lock.Status {
+			break
+		}
+		time.Sleep(3 * time.Second)
+	}
+
+	if 1 == lock.Status {
 		return &v1.WithdrawReply{
 			Status: "fail",
 		}, nil
@@ -624,6 +647,24 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		return &v1.WithdrawReply{
 			Status: "fail",
 		}, nil
+	}
+
+	// 先紧缩一次位置
+	stopLocations, err = uuc.locationRepo.GetLocationsStopNotUpdate(ctx)
+	if nil != stopLocations {
+		// 调整位置紧缩
+		for _, vStopLocations := range stopLocations {
+
+			if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+				err = uuc.locationRepo.UpdateLocationRowAndCol(ctx, vStopLocations.ID)
+				if nil != err {
+					return err
+				}
+				return nil
+			}); nil != err {
+				continue
+			}
+		}
 	}
 
 	// 获取当前用户的占位信息，已经有运行中的跳过
@@ -789,6 +830,24 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		return nil
 	}); nil != err {
 		return nil, err
+	}
+
+	// 调整位置紧缩
+	stopLocations, err = uuc.locationRepo.GetLocationsStopNotUpdate(ctx)
+	if nil != stopLocations {
+		// 调整位置紧缩
+		for _, vStopLocations := range stopLocations {
+
+			if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+				err = uuc.locationRepo.UpdateLocationRowAndCol(ctx, vStopLocations.ID)
+				if nil != err {
+					return err
+				}
+				return nil
+			}); nil != err {
+				continue
+			}
+		}
 	}
 
 	return &v1.WithdrawReply{

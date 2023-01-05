@@ -22,6 +22,11 @@ type Location struct {
 	UpdatedAt    time.Time `gorm:"type:datetime;not null"`
 }
 
+type GlobalLock struct {
+	ID     int64 `gorm:"primarykey;type:int"`
+	Status int64 `gorm:"type:int;not null"`
+}
+
 type LocationRepo struct {
 	data *Data
 	log  *log.Helper
@@ -222,6 +227,21 @@ func (lr *LocationRepo) LockGlobalWithdraw(ctx context.Context) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// getLockGlobalLocation .
+func (lr *LocationRepo) GetLockGlobalLocation(ctx context.Context) (*biz.GlobalLock, error) {
+	var globalLock GlobalLock
+	if res := lr.data.DB(ctx).Where("id=?", 1).
+		Table("global_lock").
+		First(&globalLock); res.Error != nil {
+		return nil, res.Error
+	}
+
+	return &biz.GlobalLock{
+		ID:     globalLock.ID,
+		Status: globalLock.Status,
+	}, nil
 }
 
 // UnLockGlobalWithdraw .
