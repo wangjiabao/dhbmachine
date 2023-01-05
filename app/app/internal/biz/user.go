@@ -1164,7 +1164,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 							vRewardLocations.StopDate = time.Now().UTC().Add(8 * time.Hour)
 						}
 					}
-
+					fmt.Println(vRewardLocations.StopDate)
 					if 0 < tmpBalanceAmount {
 						err = uuc.locationRepo.UpdateLocation(ctx, vRewardLocations.ID, vRewardLocations.Status, tmpBalanceAmount, vRewardLocations.StopDate) // 分红占位数据修改
 						if nil != err {
@@ -1205,6 +1205,8 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 							myUserRecommendUserLocationLast.StopDate = time.Now().UTC().Add(8 * time.Hour)
 						}
 					}
+
+					fmt.Println(myUserRecommendUserLocationLast.StopDate)
 					if 0 < tmpBalanceAmount {
 						err = uuc.locationRepo.UpdateLocation(ctx, myUserRecommendUserLocationLast.ID, myUserRecommendUserLocationLast.Status, tmpBalanceAmount, myUserRecommendUserLocationLast.StopDate) // 分红占位数据修改
 						if nil != err {

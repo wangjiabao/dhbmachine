@@ -110,6 +110,7 @@ func (lr *LocationRepo) GetMyLocationLast(ctx context.Context, userId int64) (*b
 		CurrentMax:   location.CurrentMax,
 		Row:          location.Row,
 		Col:          location.Col,
+		StopDate:     location.StopDate,
 	}, nil
 }
 
@@ -383,6 +384,7 @@ func (lr *LocationRepo) GetRewardLocationByRowOrCol(ctx context.Context, row int
 			CurrentMax:   location.CurrentMax,
 			Row:          location.Row,
 			Col:          location.Col,
+			StopDate:     location.StopDate,
 		})
 	}
 
