@@ -405,9 +405,17 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 				}
 			}
 
-			_, err = ruc.userBalanceRepo.Deposit(ctx, v.UserId, currentValue, locationCurrent) // 充值
+			_, err = ruc.userBalanceRepo.Deposit(ctx, v.UserId, currentValue) // 充值
 			if nil != err {
 				return err
+			}
+
+			if 0 < locationCurrent {
+				_, err = ruc.userBalanceRepo.DepositLast(ctx, v.UserId, locationCurrent) // 充值
+				if nil != err {
+					return err
+				}
+
 			}
 
 			err = ruc.userBalanceRepo.SystemReward(ctx, amount, currentLocation.ID)
