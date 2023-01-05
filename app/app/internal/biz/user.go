@@ -108,6 +108,7 @@ type UserBalanceRepo interface {
 	UserFee(ctx context.Context, userId int64, amount int64) (int64, error)
 	RecommendWithdrawReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
 	NormalRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
+	NormalWithdrawRecommendReward(ctx context.Context, userId int64, amount int64, locationId int64) (int64, error)
 	Deposit(ctx context.Context, userId int64, amount int64) (int64, error)
 	DepositLast(ctx context.Context, userId int64, lastAmount int64, locationId int64) (int64, error)
 	DepositDhb(ctx context.Context, userId int64, amount int64) (int64, error)
@@ -1179,7 +1180,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 								rewardAmount = tmpCurrentAmount
 							}
 
-							_, err = uuc.ubRepo.LocationReward(ctx, vRewardLocations.UserId, rewardAmount, myLocationLast.ID, vRewardLocations.ID, locationType) // 分红信息修改
+							_, err = uuc.ubRepo.WithdrawReward(ctx, vRewardLocations.UserId, rewardAmount, myLocationLast.ID, vRewardLocations.ID, locationType) // 分红信息修改
 							if nil != err {
 								return err
 							}
@@ -1221,7 +1222,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 						if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
 							rewardAmount = tmpCurrentAmount
 						}
-						_, err = uuc.ubRepo.NormalRecommendReward(ctx, myUserRecommendUserId, rewardAmount, myLocationLast.ID) // 直推人奖励
+						_, err = uuc.ubRepo.NormalWithdrawRecommendReward(ctx, myUserRecommendUserId, rewardAmount, myLocationLast.ID) // 直推人奖励
 						if nil != err {
 							return err
 						}
@@ -1268,7 +1269,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 							if tmpCurrentAmount < tmpBalanceAmount { // 大于最大可分红额度
 								rewardAmount = tmpCurrentAmount
 							}
-							_, err = uuc.ubRepo.RecommendReward(ctx, myUserRecommendUserId, rewardAmount, myLocationLast.ID) // 推荐人奖励
+							_, err = uuc.ubRepo.RecommendWithdrawReward(ctx, myUserRecommendUserId, rewardAmount, myLocationLast.ID) // 推荐人奖励
 							if nil != err {
 								return err
 							}
@@ -1279,7 +1280,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 			}
 
 			fmt.Println(withdrawAmount)
-			err = uuc.ubRepo.WithdrawUsdt(ctx, withdraw.UserId, withdrawAmount) // 提现
+			err = uuc.ubRepo.WithdrawUsdt(ctx, withdraw.UserId, withdraw.Amount) // 提现
 			if nil != err {
 				return err
 			}
