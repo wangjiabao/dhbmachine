@@ -207,35 +207,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /api/admin_dhb/user_month_recommend:
-        get:
-            tags:
-                - App
-            operationId: App_AdminUserMonthRecommend
-            parameters:
-                - name: userId
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminUserMonthRecommendReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/user_recommend:
         get:
             tags:
@@ -684,28 +655,6 @@ components:
                 historyRecommend:
                     type: integer
                     format: int64
-        AdminUserMonthRecommendReply:
-            type: object
-            properties:
-                users:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/AdminUserMonthRecommendReply_List'
-                count:
-                    type: integer
-                    format: int64
-        AdminUserMonthRecommendReply_List:
-            type: object
-            properties:
-                address:
-                    type: string
-                date:
-                    type: string
-                id:
-                    type: integer
-                    format: int64
-                createdAt:
-                    type: string
         AdminUserRecommendReply:
             type: object
             properties:

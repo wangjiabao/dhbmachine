@@ -59,6 +59,10 @@ func NewWhiteListMatcher() selector.MatchFunc {
 	whiteList["/api.App/AdminWithdrawEth"] = struct{}{}
 	whiteList["/api.App/AdminFee"] = struct{}{}
 	whiteList["/api.App/AdminAll"] = struct{}{}
+	whiteList["/api.App/AdminConfigUpdate"] = struct{}{}
+	whiteList["/api.App/AdminConfig"] = struct{}{}
+	whiteList["/api.App/AdminUserRecommend"] = struct{}{}
+	whiteList["/api.App/AdminMonthRecommend"] = struct{}{}
 	return func(ctx context.Context, operation string) bool {
 		if _, ok := whiteList[operation]; ok {
 			return false

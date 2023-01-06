@@ -127,12 +127,6 @@ service App {
 		};
 	};
 
-	rpc AdminUserMonthRecommend (AdminUserMonthRecommendRequest) returns (AdminUserMonthRecommendReply) {
-		option (google.api.http) = {
-			get: "/api/admin_dhb/user_month_recommend"
-		};
-	};
-
 	rpc AdminConfig (AdminConfigRequest) returns (AdminConfigReply) {
 		option (google.api.http) = {
 			get: "/api/admin_dhb/config"
@@ -411,22 +405,6 @@ message AdminMonthRecommendReply {
 	message List {
 		string address = 3;
 		string recommendAddress = 4;
-		int64  id = 2;
-		string created_at = 1;
-	}
-	int64 count = 2;
-}
-
-message AdminUserMonthRecommendRequest {
-	int64 userId = 1;
-	int64 page = 2;
-}
-
-message AdminUserMonthRecommendReply {
-	repeated List users = 1;
-	message List {
-		string address = 3;
-		string date = 4;
 		int64  id = 2;
 		string created_at = 1;
 	}

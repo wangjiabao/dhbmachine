@@ -41,7 +41,6 @@ type AppClient interface {
 	AdminAll(ctx context.Context, in *AdminAllRequest, opts ...grpc.CallOption) (*AdminAllReply, error)
 	AdminUserRecommend(ctx context.Context, in *AdminUserRecommendRequest, opts ...grpc.CallOption) (*AdminUserRecommendReply, error)
 	AdminMonthRecommend(ctx context.Context, in *AdminMonthRecommendRequest, opts ...grpc.CallOption) (*AdminMonthRecommendReply, error)
-	AdminUserMonthRecommend(ctx context.Context, in *AdminUserMonthRecommendRequest, opts ...grpc.CallOption) (*AdminUserMonthRecommendReply, error)
 	AdminConfig(ctx context.Context, in *AdminConfigRequest, opts ...grpc.CallOption) (*AdminConfigReply, error)
 	AdminConfigUpdate(ctx context.Context, in *AdminConfigUpdateRequest, opts ...grpc.CallOption) (*AdminConfigUpdateReply, error)
 }
@@ -225,15 +224,6 @@ func (c *appClient) AdminMonthRecommend(ctx context.Context, in *AdminMonthRecom
 	return out, nil
 }
 
-func (c *appClient) AdminUserMonthRecommend(ctx context.Context, in *AdminUserMonthRecommendRequest, opts ...grpc.CallOption) (*AdminUserMonthRecommendReply, error) {
-	out := new(AdminUserMonthRecommendReply)
-	err := c.cc.Invoke(ctx, "/api.App/AdminUserMonthRecommend", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *appClient) AdminConfig(ctx context.Context, in *AdminConfigRequest, opts ...grpc.CallOption) (*AdminConfigReply, error) {
 	out := new(AdminConfigReply)
 	err := c.cc.Invoke(ctx, "/api.App/AdminConfig", in, out, opts...)
@@ -275,7 +265,6 @@ type AppServer interface {
 	AdminAll(context.Context, *AdminAllRequest) (*AdminAllReply, error)
 	AdminUserRecommend(context.Context, *AdminUserRecommendRequest) (*AdminUserRecommendReply, error)
 	AdminMonthRecommend(context.Context, *AdminMonthRecommendRequest) (*AdminMonthRecommendReply, error)
-	AdminUserMonthRecommend(context.Context, *AdminUserMonthRecommendRequest) (*AdminUserMonthRecommendReply, error)
 	AdminConfig(context.Context, *AdminConfigRequest) (*AdminConfigReply, error)
 	AdminConfigUpdate(context.Context, *AdminConfigUpdateRequest) (*AdminConfigUpdateReply, error)
 	mustEmbedUnimplementedAppServer()
@@ -341,9 +330,6 @@ func (UnimplementedAppServer) AdminUserRecommend(context.Context, *AdminUserReco
 }
 func (UnimplementedAppServer) AdminMonthRecommend(context.Context, *AdminMonthRecommendRequest) (*AdminMonthRecommendReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminMonthRecommend not implemented")
-}
-func (UnimplementedAppServer) AdminUserMonthRecommend(context.Context, *AdminUserMonthRecommendRequest) (*AdminUserMonthRecommendReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AdminUserMonthRecommend not implemented")
 }
 func (UnimplementedAppServer) AdminConfig(context.Context, *AdminConfigRequest) (*AdminConfigReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminConfig not implemented")
@@ -706,24 +692,6 @@ func _App_AdminMonthRecommend_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _App_AdminUserMonthRecommend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AdminUserMonthRecommendRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AppServer).AdminUserMonthRecommend(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.App/AdminUserMonthRecommend",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServer).AdminUserMonthRecommend(ctx, req.(*AdminUserMonthRecommendRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _App_AdminConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AdminConfigRequest)
 	if err := dec(in); err != nil {
@@ -842,10 +810,6 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminMonthRecommend",
 			Handler:    _App_AdminMonthRecommend_Handler,
-		},
-		{
-			MethodName: "AdminUserMonthRecommend",
-			Handler:    _App_AdminUserMonthRecommend_Handler,
 		},
 		{
 			MethodName: "AdminConfig",
