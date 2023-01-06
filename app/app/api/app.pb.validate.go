@@ -4214,6 +4214,8 @@ func (m *AdminMonthRecommendRequest) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Address
+
 	// no validation rules for Page
 
 	if len(errors) > 0 {
@@ -6511,6 +6513,8 @@ func (m *AdminMonthRecommendReply_List) validate(all bool) error {
 
 	// no validation rules for Address
 
+	// no validation rules for RecommendAddress
+
 	// no validation rules for Id
 
 	// no validation rules for CreatedAt
@@ -6620,6 +6624,8 @@ func (m *AdminUserMonthRecommendReply_List) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for Address
+
+	// no validation rules for Date
 
 	// no validation rules for Id
 

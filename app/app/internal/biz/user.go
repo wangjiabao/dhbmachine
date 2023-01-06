@@ -29,6 +29,7 @@ type UserRecommend struct {
 	ID            int64
 	UserId        int64
 	RecommendCode string
+	CreatedAt     time.Time
 }
 
 type UserCurrentMonthRecommend struct {
@@ -95,6 +96,8 @@ type Pagination struct {
 
 type ConfigRepo interface {
 	GetConfigByKeys(ctx context.Context, keys ...string) ([]*Config, error)
+	GetConfigs(ctx context.Context) ([]*Config, error)
+	UpdateConfig(ctx context.Context, id int64, value string) (bool, error)
 }
 
 type UserBalanceRepo interface {
@@ -138,11 +141,13 @@ type UserBalanceRepo interface {
 type UserRecommendRepo interface {
 	GetUserRecommendByUserId(ctx context.Context, userId int64) (*UserRecommend, error)
 	CreateUserRecommend(ctx context.Context, u *User, recommendUser *UserRecommend) (*UserRecommend, error)
-	GetUserRecommendByCode(ctx context.Context, code string) ([]*UserRecommend, error)
+	GetUserRecommendByCode(ctx context.Context, b *Pagination, code string) ([]*UserRecommend, error, int64)
+	GetUserRecommendLikeCode(ctx context.Context, code string) ([]*UserRecommend, error)
 }
 
 type UserCurrentMonthRecommendRepo interface {
 	GetUserCurrentMonthRecommendByUserId(ctx context.Context, userId int64) ([]*UserCurrentMonthRecommend, error)
+	GetUserCurrentMonthRecommendGroupByUserId(ctx context.Context, b *Pagination, userId int64) ([]*UserCurrentMonthRecommend, error, int64)
 	CreateUserCurrentMonthRecommend(ctx context.Context, u *UserCurrentMonthRecommend) (*UserCurrentMonthRecommend, error)
 	GetUserCurrentMonthRecommendCountByUserIds(ctx context.Context, userIds ...int64) (map[int64]int64, error)
 	GetUserLastMonthRecommend(ctx context.Context) ([]int64, error)
@@ -348,7 +353,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	}
 
 	// 团队
-	userRecommends, err = uuc.urRepo.GetUserRecommendByCode(ctx, myCode)
+	userRecommends, err = uuc.urRepo.GetUserRecommendLikeCode(ctx, myCode)
 	if nil != userRecommends {
 		recommendTeamNum = int64(len(userRecommends))
 	}
@@ -844,6 +849,171 @@ func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLoca
 
 	return res, nil
 
+}
+
+func (uuc *UserUseCase) AdminRecommendList(ctx context.Context, req *v1.AdminUserRecommendRequest) (*v1.AdminUserRecommendReply, error) {
+	var (
+		userRecommends []*UserRecommend
+		userRecommend  *UserRecommend
+		userIdsMap     map[int64]int64
+		userIds        []int64
+		users          map[int64]*User
+		count          int64
+		err            error
+	)
+
+	res := &v1.AdminUserRecommendReply{
+		Users: make([]*v1.AdminUserRecommendReply_List, 0),
+	}
+
+	// 地址查询
+	if 0 < req.UserId {
+		userRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, req.UserId)
+		if nil == userRecommend {
+			return res, nil
+		}
+
+		userRecommends, err, count = uuc.urRepo.GetUserRecommendByCode(ctx, &Pagination{
+			PageNum:  int(req.Page),
+			PageSize: 10,
+		}, userRecommend.RecommendCode+"D"+strconv.FormatInt(userRecommend.UserId, 10))
+		if nil != err {
+			return res, nil
+		}
+
+		res.Count = count
+	}
+
+	userIdsMap = make(map[int64]int64, 0)
+	for _, vLocations := range userRecommends {
+		userIdsMap[vLocations.UserId] = vLocations.UserId
+	}
+	for _, v := range userIdsMap {
+		userIds = append(userIds, v)
+	}
+
+	users, err = uuc.repo.GetUserByUserIds(ctx, userIds...)
+	if nil != err {
+		return res, nil
+	}
+
+	for _, v := range userRecommends {
+		if _, ok := users[v.UserId]; !ok {
+			continue
+		}
+
+		res.Users = append(res.Users, &v1.AdminUserRecommendReply_List{
+			Address:   users[v.UserId].Address,
+			Id:        v.ID,
+			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return res, nil
+}
+
+func (uuc *UserUseCase) AdminMonthRecommend(ctx context.Context, req *v1.AdminMonthRecommendRequest) (*v1.AdminMonthRecommendReply, error) {
+	var (
+		userCurrentMonthRecommends []*UserCurrentMonthRecommend
+		searchUser                 *User
+		userIdsMap                 map[int64]int64
+		userIds                    []int64
+		users                      map[int64]*User
+		count                      int64
+		err                        error
+	)
+
+	res := &v1.AdminMonthRecommendReply{
+		Users: make([]*v1.AdminMonthRecommendReply_List, 0),
+	}
+
+	// 地址查询
+	if "" != req.Address {
+
+		searchUser, err = uuc.repo.GetUserByAddress(ctx, req.Address)
+		if nil == searchUser {
+			return res, nil
+		}
+
+		userCurrentMonthRecommends, err, count = uuc.userCurrentMonthRecommendRepo.GetUserCurrentMonthRecommendGroupByUserId(ctx, &Pagination{
+			PageNum:  int(req.Page),
+			PageSize: 10,
+		}, searchUser.ID)
+		if nil != err {
+			return res, nil
+		}
+
+		res.Count = count
+	}
+
+	userIdsMap = make(map[int64]int64, 0)
+	for _, vRecommend := range userCurrentMonthRecommends {
+		userIdsMap[vRecommend.UserId] = vRecommend.UserId
+		userIdsMap[vRecommend.RecommendUserId] = vRecommend.RecommendUserId
+	}
+	for _, v := range userIdsMap {
+		userIds = append(userIds, v)
+	}
+
+	users, err = uuc.repo.GetUserByUserIds(ctx, userIds...)
+	if nil != err {
+		return res, nil
+	}
+
+	for _, v := range userCurrentMonthRecommends {
+		if _, ok := users[v.UserId]; !ok {
+			continue
+		}
+
+		res.Users = append(res.Users, &v1.AdminMonthRecommendReply_List{
+			Address:          users[v.UserId].Address,
+			Id:               v.ID,
+			RecommendAddress: users[v.RecommendUserId].Address,
+			CreatedAt:        v.Date.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return res, nil
+}
+
+func (uuc *UserUseCase) AdminConfig(ctx context.Context, req *v1.AdminConfigRequest) (*v1.AdminConfigReply, error) {
+	var (
+		configs []*Config
+	)
+
+	res := &v1.AdminConfigReply{
+		Config: make([]*v1.AdminConfigReply_List, 0),
+	}
+
+	configs, _ = uuc.configRepo.GetConfigs(ctx)
+	if nil == configs {
+		return res, nil
+	}
+
+	for _, v := range configs {
+		res.Config = append(res.Config, &v1.AdminConfigReply_List{
+			Id:    v.ID,
+			Name:  v.Name,
+			Value: v.Value,
+		})
+	}
+
+	return res, nil
+}
+
+func (uuc *UserUseCase) AdminConfigUpdate(ctx context.Context, req *v1.AdminConfigUpdateRequest) (*v1.AdminConfigUpdateReply, error) {
+	var (
+		err error
+	)
+
+	res := &v1.AdminConfigUpdateReply{}
+
+	_, err = uuc.configRepo.UpdateConfig(ctx, req.SendBody.Id, req.SendBody.Value)
+	if nil != err {
+		return res, err
+	}
+
+	return res, nil
 }
 
 func (uuc *UserUseCase) GetWithdrawPassOrRewardedList(ctx context.Context) ([]*Withdraw, error) {

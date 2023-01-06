@@ -211,6 +211,43 @@ func (c *ConfigRepo) GetConfigByKeys(ctx context.Context, keys ...string) ([]*bi
 	return res, nil
 }
 
+// GetConfigs .
+func (c *ConfigRepo) GetConfigs(ctx context.Context) ([]*biz.Config, error) {
+	var configs []*Config
+	res := make([]*biz.Config, 0)
+	if err := c.data.db.Table("config").Find(&configs).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.NotFound("CONFIG_NOT_FOUND", "config not found")
+		}
+
+		return nil, errors.New(500, "Config ERROR", err.Error())
+	}
+
+	for _, config := range configs {
+		res = append(res, &biz.Config{
+			ID:      config.ID,
+			KeyName: config.KeyName,
+			Name:    config.Name,
+			Value:   config.Value,
+		})
+	}
+
+	return res, nil
+}
+
+// UpdateConfig .
+func (c *ConfigRepo) UpdateConfig(ctx context.Context, id int64, value string) (bool, error) {
+	var config Config
+	config.Value = value
+
+	res := c.data.DB(ctx).Table("config").Where("id=?", id).Updates(&config)
+	if res.Error != nil {
+		return false, errors.New(500, "UPDATE_USER_INFO_ERROR", "用户信息修改失败")
+	}
+
+	return true, nil
+}
+
 // GetUserById .
 func (u *UserRepo) GetUserById(ctx context.Context, Id int64) (*biz.User, error) {
 	var user User
@@ -424,7 +461,37 @@ func (ur *UserRecommendRepo) GetUserRecommendByUserId(ctx context.Context, userI
 }
 
 // GetUserRecommendByCode .
-func (ur *UserRecommendRepo) GetUserRecommendByCode(ctx context.Context, code string) ([]*biz.UserRecommend, error) {
+func (ur *UserRecommendRepo) GetUserRecommendByCode(ctx context.Context, b *biz.Pagination, code string) ([]*biz.UserRecommend, error, int64) {
+	var (
+		userRecommends []*UserRecommend
+		count          int64
+	)
+	res := make([]*biz.UserRecommend, 0)
+
+	instance := ur.data.db.Table("withdraw").Where("recommend_code=?", code)
+
+	instance = instance.Count(&count)
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Table("user_recommend").Find(&userRecommends).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USER_RECOMMEND_NOT_FOUND", "user recommend not found"), 0
+		}
+
+		return nil, errors.New(500, "USER RECOMMEND ERROR", err.Error()), 0
+	}
+
+	for _, userRecommend := range userRecommends {
+		res = append(res, &biz.UserRecommend{
+			UserId:        userRecommend.UserId,
+			RecommendCode: userRecommend.RecommendCode,
+			CreatedAt:     userRecommend.CreatedAt,
+		})
+	}
+
+	return res, nil, count
+}
+
+// GetUserRecommendLikeCode .
+func (ur *UserRecommendRepo) GetUserRecommendLikeCode(ctx context.Context, code string) ([]*biz.UserRecommend, error) {
 	var userRecommends []*UserRecommend
 	res := make([]*biz.UserRecommend, 0)
 	if err := ur.data.db.Where("recommend_code Like ?", code+"%").Table("user_recommend").Find(&userRecommends).Error; err != nil {
@@ -1219,6 +1286,39 @@ func (uc *UserCurrentMonthRecommendRepo) GetUserCurrentMonthRecommendByUserId(ct
 		})
 	}
 	return res, nil
+}
+
+// GetUserCurrentMonthRecommendGroupByUserId .
+func (uc *UserCurrentMonthRecommendRepo) GetUserCurrentMonthRecommendGroupByUserId(ctx context.Context, b *biz.Pagination, userId int64) ([]*biz.UserCurrentMonthRecommend, error, int64) {
+	var (
+		count                      int64
+		userCurrentMonthRecommends []*UserCurrentMonthRecommend
+	)
+	res := make([]*biz.UserCurrentMonthRecommend, 0)
+
+	instance := uc.data.db.Table("user_current_month_recommend")
+	if 0 < userId {
+		instance = instance.Where("user_id=?", userId)
+	}
+
+	instance = instance.Count(&count)
+	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Find(&userCurrentMonthRecommends).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USER_CURRENT_MONTH_RECOMMEND_NOT_FOUND", "user current month recommend not found"), 0
+		}
+
+		return nil, errors.New(500, "USER CURRENT MONTH RECOMMEND ERROR", err.Error()), 0
+	}
+
+	for _, userCurrentMonthRecommend := range userCurrentMonthRecommends {
+		res = append(res, &biz.UserCurrentMonthRecommend{
+			ID:              userCurrentMonthRecommend.ID,
+			UserId:          userCurrentMonthRecommend.UserId,
+			RecommendUserId: userCurrentMonthRecommend.RecommendUserId,
+			Date:            userCurrentMonthRecommend.Date,
+		})
+	}
+	return res, nil, count
 }
 
 // GetUserRewardByUserId .

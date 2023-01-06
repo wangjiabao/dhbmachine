@@ -417,6 +417,22 @@ func (a *AppService) AdminAll(ctx context.Context, req *v1.AdminAllRequest) (*v1
 	return a.uuc.AdminAll(ctx, req)
 }
 
+func (a *AppService) AdminUserRecommend(ctx context.Context, req *v1.AdminUserRecommendRequest) (*v1.AdminUserRecommendReply, error) {
+	return a.uuc.AdminRecommendList(ctx, req)
+}
+
+func (a *AppService) AdminMonthRecommend(ctx context.Context, req *v1.AdminMonthRecommendRequest) (*v1.AdminMonthRecommendReply, error) {
+	return a.uuc.AdminMonthRecommend(ctx, req)
+}
+
+func (a *AppService) AdminConfig(ctx context.Context, req *v1.AdminConfigRequest) (*v1.AdminConfigReply, error) {
+	return a.uuc.AdminConfig(ctx, req)
+}
+
+func (a *AppService) AdminConfigUpdate(ctx context.Context, req *v1.AdminConfigUpdateRequest) (*v1.AdminConfigUpdateReply, error) {
+	return a.uuc.AdminConfigUpdate(ctx, req)
+}
+
 func (a *AppService) AdminWithdrawEth(ctx context.Context, req *v1.AdminWithdrawEthRequest) (*v1.AdminWithdrawEthReply, error) {
 	var (
 		withdraws    []*biz.Withdraw

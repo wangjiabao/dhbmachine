@@ -129,6 +129,10 @@ paths:
                 - App
             operationId: App_AdminMonthRecommend
             parameters:
+                - name: address
+                  in: query
+                  schema:
+                    type: string
                 - name: page
                   in: query
                   schema:
@@ -569,8 +573,7 @@ components:
                     type: integer
                     format: int64
                 value:
-                    type: integer
-                    format: int64
+                    type: string
         AdminFeeReply:
             type: object
             properties: {}
@@ -620,6 +623,8 @@ components:
             type: object
             properties:
                 address:
+                    type: string
+                recommendAddress:
                     type: string
                 id:
                     type: integer
@@ -693,6 +698,8 @@ components:
             type: object
             properties:
                 address:
+                    type: string
+                date:
                     type: string
                 id:
                     type: integer

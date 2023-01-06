@@ -402,6 +402,7 @@ message AdminUserRecommendReply {
 }
 
 message AdminMonthRecommendRequest {
+	string address = 1;
 	int64 page = 2;
 }
 
@@ -409,6 +410,7 @@ message AdminMonthRecommendReply {
 	repeated List users = 1;
 	message List {
 		string address = 3;
+		string recommendAddress = 4;
 		int64  id = 2;
 		string created_at = 1;
 	}
@@ -424,6 +426,7 @@ message AdminUserMonthRecommendReply {
 	repeated List users = 1;
 	message List {
 		string address = 3;
+		string date = 4;
 		int64  id = 2;
 		string created_at = 1;
 	}
@@ -448,7 +451,7 @@ message AdminConfigReply {
 message AdminConfigUpdateRequest {
 	message SendBody{
 		int64 id = 1;
-		int64 value = 2;
+		string value = 2;
 	}
 
 	SendBody send_body = 1;
