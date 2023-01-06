@@ -610,9 +610,31 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			Status: "fail",
 		}, nil
 	}
+	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 
-	_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, req.SendBody.Type)
-	if nil != err {
+		if "usdt" == req.SendBody.Type {
+			err = uuc.ubRepo.WithdrawUsdt(ctx, user.ID, amount) // 提现
+			if nil != err {
+				return err
+			}
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, req.SendBody.Type)
+			if nil != err {
+				return err
+			}
+
+		} else if "dhb" == req.SendBody.Type {
+			err = uuc.ubRepo.WithdrawDhb(ctx, user.ID, amount) // 提现
+			if nil != err {
+				return err
+			}
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, req.SendBody.Type)
+			if nil != err {
+				return err
+			}
+		}
+
+		return nil
+	}); nil != err {
 		return nil, err
 	}
 
@@ -1059,11 +1081,6 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 
 		if "dhb" == withdraw.Type { // 提现dhb
 			if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
-				err = uuc.ubRepo.WithdrawDhb(ctx, withdraw.UserId, currentValue) // 提现
-				if nil != err {
-					return err
-				}
-
 				_, err = uuc.ubRepo.UpdateWithdraw(ctx, withdraw.ID, "pass")
 				if nil != err {
 					return err
@@ -1279,12 +1296,6 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 				}
 			}
 
-			fmt.Println(withdrawAmount)
-			err = uuc.ubRepo.WithdrawUsdt(ctx, withdraw.UserId, withdraw.Amount) // 提现
-			if nil != err {
-				return err
-			}
-
 			err = uuc.ubRepo.SystemWithdrawReward(ctx, systemAmount, myLocationLast.ID)
 			if nil != err {
 				return err
@@ -1297,7 +1308,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 
 			return nil
 		}); nil != err {
-			return nil, err
+			continue
 		}
 
 		// 调整位置紧缩
