@@ -5801,6 +5801,8 @@ func (m *AdminUserListReply_UserList) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for UserId
+
 	// no validation rules for CreatedAt
 
 	// no validation rules for Address

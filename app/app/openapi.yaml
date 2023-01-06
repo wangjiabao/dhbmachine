@@ -638,6 +638,9 @@ components:
         AdminUserListReply_UserList:
             type: object
             properties:
+                userId:
+                    type: integer
+                    format: int64
                 createdAt:
                     type: string
                 address:

@@ -297,6 +297,7 @@ message AdminUserListRequest {
 message AdminUserListReply {
 	repeated UserList users = 1;
 	message UserList {
+		int64 user_id = 8;
 		string created_at = 1;
 		string address = 2;
 		string balanceUsdt = 3;

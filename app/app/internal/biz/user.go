@@ -766,6 +766,7 @@ func (uuc *UserUseCase) AdminUserList(ctx context.Context, req *v1.AdminUserList
 		}
 
 		res.Users = append(res.Users, &v1.AdminUserListReply_UserList{
+			UserId:           v.ID,
 			CreatedAt:        v.CreatedAt.Format("2006-01-02 15:04:05"),
 			Address:          v.Address,
 			BalanceUsdt:      fmt.Sprintf("%.2f", float64(userBalances[v.ID].BalanceUsdt)/float64(10000000000)),
