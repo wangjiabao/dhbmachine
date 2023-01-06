@@ -918,6 +918,7 @@ func (uuc *UserUseCase) AdminMonthRecommend(ctx context.Context, req *v1.AdminMo
 		searchUser                 *User
 		userIdsMap                 map[int64]int64
 		userIds                    []int64
+		searchUserId               int64
 		users                      map[int64]*User
 		count                      int64
 		err                        error
@@ -929,22 +930,21 @@ func (uuc *UserUseCase) AdminMonthRecommend(ctx context.Context, req *v1.AdminMo
 
 	// 地址查询
 	if "" != req.Address {
-
 		searchUser, err = uuc.repo.GetUserByAddress(ctx, req.Address)
 		if nil == searchUser {
 			return res, nil
 		}
-
-		userCurrentMonthRecommends, err, count = uuc.userCurrentMonthRecommendRepo.GetUserCurrentMonthRecommendGroupByUserId(ctx, &Pagination{
-			PageNum:  int(req.Page),
-			PageSize: 10,
-		}, searchUser.ID)
-		if nil != err {
-			return res, nil
-		}
-
-		res.Count = count
+		searchUserId = searchUser.ID
 	}
+
+	userCurrentMonthRecommends, err, count = uuc.userCurrentMonthRecommendRepo.GetUserCurrentMonthRecommendGroupByUserId(ctx, &Pagination{
+		PageNum:  int(req.Page),
+		PageSize: 10,
+	}, searchUserId)
+	if nil != err {
+		return res, nil
+	}
+	res.Count = count
 
 	userIdsMap = make(map[int64]int64, 0)
 	for _, vRecommend := range userCurrentMonthRecommends {

@@ -381,7 +381,7 @@ message AdminAllReply {
 }
 
 message AdminUserRecommendRequest {
-	int64 userId = 1;
+	int64 user_id = 1;
 	int64 page = 2;
 }
 

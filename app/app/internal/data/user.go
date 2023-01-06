@@ -468,7 +468,7 @@ func (ur *UserRecommendRepo) GetUserRecommendByCode(ctx context.Context, b *biz.
 	)
 	res := make([]*biz.UserRecommend, 0)
 
-	instance := ur.data.db.Table("withdraw").Where("recommend_code=?", code)
+	instance := ur.data.db.Table("user_recommend").Where("recommend_code=?", code)
 
 	instance = instance.Count(&count)
 	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Table("user_recommend").Find(&userRecommends).Error; err != nil {
