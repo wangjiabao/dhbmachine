@@ -124,7 +124,7 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 	// 在功能上调用者查询两种币的交易记录，每次都要把数据覆盖查询，是一个较大范围的查找防止遗漏数据，范围最起码要大于实际这段时间的入单量，不能边界查询容易掉单，这样的实现是因为简单
 	for i := 1; i <= 10; i++ {
 
-		depositUsdtResult, err = requestEthDepositResult(200, int64(i), "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd")
+		depositUsdtResult, err = requestEthDepositResult(200, int64(i), "0x55d398326f99059fF775485246999027B3197955")
 		// 辅助查询
 		//depositDhbResult, err = requestEthDepositResult(200, int64(i), "0x96BD81715c69eE013405B4005Ba97eA1f420fd87")
 		//tmpDepositDhbResult, err = requestEthDepositResult(100, int64(i+1), "0x96BD81715c69eE013405B4005Ba97eA1f420fd87")
@@ -196,11 +196,11 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			//	continue
 			//}
 
-			if "10000000000000000" == vDepositUsdtResult.Value {
+			if "1000000000000000000" == vDepositUsdtResult.Value {
 
-			} else if "20000000000000000" == vDepositUsdtResult.Value {
+			} else if "2000000000000000000" == vDepositUsdtResult.Value {
 
-			} else if "50000000000000000" == vDepositUsdtResult.Value {
+			} else if "5000000000000000000" == vDepositUsdtResult.Value {
 
 			} else {
 				continue
@@ -245,14 +245,14 @@ type eth struct {
 }
 
 func requestEthDepositResult(offset int64, page int64, contractAddress string) (map[string]*eth, error) {
-	apiUrl := "https://api-testnet.bscscan.com/api"
-	//apiUrl := "https://api.bscscan.com/api"
+	//apiUrl := "https://api-testnet.bscscan.com/api"
+	apiUrl := "https://api.bscscan.com/api"
 	// URL param
 	data := url.Values{}
 	data.Set("module", "account")
 	data.Set("action", "tokentx")
 	data.Set("contractaddress", contractAddress)
-	data.Set("address", "0xe865f2e5ff04b8b7952d1c0d9163a91f313b158f")
+	data.Set("address", "0x636F2deAAb4C9A8F3c808D23F16f456009C4e9Fd")
 	data.Set("sort", "desc")
 	data.Set("offset", strconv.FormatInt(offset, 10))
 	data.Set("page", strconv.FormatInt(page, 10))
@@ -294,7 +294,7 @@ func requestEthDepositResult(offset int64, page int64, contractAddress string) (
 
 	res := make(map[string]*eth, 0)
 	for _, v := range i.Result {
-		if "0xe865f2e5ff04b8b7952d1c0d9163a91f313b158f" == v.To { // 接收者
+		if "0x636F2deAAb4C9A8F3c808D23F16f456009C4e9Fd" == v.To { // 接收者
 			res[v.Hash] = v
 		}
 	}
@@ -492,12 +492,10 @@ func (a *AppService) AdminWithdrawEth(ctx context.Context, req *v1.AdminWithdraw
 			continue
 		}
 
-		withDrawAmount := strconv.FormatInt(v.Amount, 10) + "00000000" // 补八个0.系统基础1是10个0
+		withDrawAmount := strconv.FormatInt(v.Amount, 10) + "000000" // 补八个0.系统基础1是10个0
 
 		for i := 0; i < 3; i++ {
 			//fmt.Println(11111, user.ToAddress, v.Amount, balanceInt)
-			//_, _, err = toTokenNew(user.ToAddressPrivateKey, "0xe865f2e5ff04B8b7952d1C0d9163A91F313b158f", addressEth.Balance)
-			//_, _, err = toToken(user.ToAddressPrivateKey, "0xe865f2e5ff04B8b7952d1C0d9163A91F313b158f", balanceInt)
 			_, _, err = toToken("", users[v.UserId].Address, withDrawAmount, tokenAddress)
 			fmt.Println(3333, err)
 			if err == nil {
@@ -527,7 +525,7 @@ func (a *AppService) AdminWithdrawEth(ctx context.Context, req *v1.AdminWithdraw
 
 			if 0 < tmpAmount {
 				//_, _, err = toBnB("0xe865f2e5ff04B8b7952d1C0d9163A91F313b158f", user.ToAddressPrivateKey, tmpAmount)
-				_, _, err = toBnB("0x4a2Fc95a0412aa77a863c1454FE6B07877D020f3", "", tmpAmount)
+				_, _, err = toBnB("0xD7575aD943d04Bd5757867EE7e16409BC4ec7fdF", "", tmpAmount)
 				if nil != err {
 					fmt.Println(4444, err)
 					continue
