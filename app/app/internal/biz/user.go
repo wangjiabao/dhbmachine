@@ -304,7 +304,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	}
 
 	locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, myUser.ID)
-	if nil != locations {
+	if nil != locations && 0 < len(locations) {
 		status = "stop"
 		for _, v := range locations {
 			if "running" == v.Status {
