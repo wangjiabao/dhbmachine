@@ -18,12 +18,6 @@ service App {
 		};
 	};
 
-	rpc Deposit (DepositRequest) returns (DepositReply) {
-		option (google.api.http) = {
-			get: "/api/app_server/deposit"
-		};
-	};
-
 	rpc UserInfo (UserInfoRequest) returns (UserInfoReply) {
 		option (google.api.http) = {
 			get: "/api/app_server/user_info"
@@ -64,6 +58,12 @@ service App {
 		option (google.api.http) = {
 			post: "/api/app_server/withdraw"
 			body: "send_body"
+		};
+	};
+
+	rpc Deposit (DepositRequest) returns (DepositReply) {
+		option (google.api.http) = {
+			get: "/api/admin_dhb/deposit"
 		};
 	};
 

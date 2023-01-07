@@ -23,7 +23,6 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AppClient interface {
 	EthAuthorize(ctx context.Context, in *EthAuthorizeRequest, opts ...grpc.CallOption) (*EthAuthorizeReply, error)
-	Deposit(ctx context.Context, in *DepositRequest, opts ...grpc.CallOption) (*DepositReply, error)
 	UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoReply, error)
 	RewardList(ctx context.Context, in *RewardListRequest, opts ...grpc.CallOption) (*RewardListReply, error)
 	RecommendRewardList(ctx context.Context, in *RecommendRewardListRequest, opts ...grpc.CallOption) (*RecommendRewardListReply, error)
@@ -31,6 +30,7 @@ type AppClient interface {
 	WithdrawList(ctx context.Context, in *WithdrawListRequest, opts ...grpc.CallOption) (*WithdrawListReply, error)
 	RecommendList(ctx context.Context, in *RecommendListRequest, opts ...grpc.CallOption) (*RecommendListReply, error)
 	Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error)
+	Deposit(ctx context.Context, in *DepositRequest, opts ...grpc.CallOption) (*DepositReply, error)
 	AdminRewardList(ctx context.Context, in *AdminRewardListRequest, opts ...grpc.CallOption) (*AdminRewardListReply, error)
 	AdminUserList(ctx context.Context, in *AdminUserListRequest, opts ...grpc.CallOption) (*AdminUserListReply, error)
 	AdminLocationList(ctx context.Context, in *AdminLocationListRequest, opts ...grpc.CallOption) (*AdminLocationListReply, error)
@@ -56,15 +56,6 @@ func NewAppClient(cc grpc.ClientConnInterface) AppClient {
 func (c *appClient) EthAuthorize(ctx context.Context, in *EthAuthorizeRequest, opts ...grpc.CallOption) (*EthAuthorizeReply, error) {
 	out := new(EthAuthorizeReply)
 	err := c.cc.Invoke(ctx, "/api.App/EthAuthorize", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *appClient) Deposit(ctx context.Context, in *DepositRequest, opts ...grpc.CallOption) (*DepositReply, error) {
-	out := new(DepositReply)
-	err := c.cc.Invoke(ctx, "/api.App/Deposit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -128,6 +119,15 @@ func (c *appClient) RecommendList(ctx context.Context, in *RecommendListRequest,
 func (c *appClient) Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error) {
 	out := new(WithdrawReply)
 	err := c.cc.Invoke(ctx, "/api.App/Withdraw", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) Deposit(ctx context.Context, in *DepositRequest, opts ...grpc.CallOption) (*DepositReply, error) {
+	out := new(DepositReply)
+	err := c.cc.Invoke(ctx, "/api.App/Deposit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,6 @@ func (c *appClient) AdminConfigUpdate(ctx context.Context, in *AdminConfigUpdate
 // for forward compatibility
 type AppServer interface {
 	EthAuthorize(context.Context, *EthAuthorizeRequest) (*EthAuthorizeReply, error)
-	Deposit(context.Context, *DepositRequest) (*DepositReply, error)
 	UserInfo(context.Context, *UserInfoRequest) (*UserInfoReply, error)
 	RewardList(context.Context, *RewardListRequest) (*RewardListReply, error)
 	RecommendRewardList(context.Context, *RecommendRewardListRequest) (*RecommendRewardListReply, error)
@@ -255,6 +254,7 @@ type AppServer interface {
 	WithdrawList(context.Context, *WithdrawListRequest) (*WithdrawListReply, error)
 	RecommendList(context.Context, *RecommendListRequest) (*RecommendListReply, error)
 	Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error)
+	Deposit(context.Context, *DepositRequest) (*DepositReply, error)
 	AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error)
 	AdminUserList(context.Context, *AdminUserListRequest) (*AdminUserListReply, error)
 	AdminLocationList(context.Context, *AdminLocationListRequest) (*AdminLocationListReply, error)
@@ -277,9 +277,6 @@ type UnimplementedAppServer struct {
 func (UnimplementedAppServer) EthAuthorize(context.Context, *EthAuthorizeRequest) (*EthAuthorizeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EthAuthorize not implemented")
 }
-func (UnimplementedAppServer) Deposit(context.Context, *DepositRequest) (*DepositReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Deposit not implemented")
-}
 func (UnimplementedAppServer) UserInfo(context.Context, *UserInfoRequest) (*UserInfoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserInfo not implemented")
 }
@@ -300,6 +297,9 @@ func (UnimplementedAppServer) RecommendList(context.Context, *RecommendListReque
 }
 func (UnimplementedAppServer) Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
+}
+func (UnimplementedAppServer) Deposit(context.Context, *DepositRequest) (*DepositReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Deposit not implemented")
 }
 func (UnimplementedAppServer) AdminRewardList(context.Context, *AdminRewardListRequest) (*AdminRewardListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminRewardList not implemented")
@@ -364,24 +364,6 @@ func _App_EthAuthorize_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).EthAuthorize(ctx, req.(*EthAuthorizeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _App_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DepositRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AppServer).Deposit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.App/Deposit",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServer).Deposit(ctx, req.(*DepositRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -508,6 +490,24 @@ func _App_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).Withdraw(ctx, req.(*WithdrawRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DepositRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).Deposit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.App/Deposit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).Deposit(ctx, req.(*DepositRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -740,10 +740,6 @@ var App_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _App_EthAuthorize_Handler,
 		},
 		{
-			MethodName: "Deposit",
-			Handler:    _App_Deposit_Handler,
-		},
-		{
 			MethodName: "UserInfo",
 			Handler:    _App_UserInfo_Handler,
 		},
@@ -770,6 +766,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Withdraw",
 			Handler:    _App_Withdraw_Handler,
+		},
+		{
+			MethodName: "Deposit",
+			Handler:    _App_Deposit_Handler,
 		},
 		{
 			MethodName: "AdminRewardList",

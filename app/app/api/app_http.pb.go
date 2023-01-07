@@ -68,7 +68,6 @@ type AppHTTPServer interface {
 func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r := s.Route("/")
 	r.POST("/api/app_server/eth_authorize", _App_EthAuthorize0_HTTP_Handler(srv))
-	r.GET("/api/app_server/deposit", _App_Deposit0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_info", _App_UserInfo0_HTTP_Handler(srv))
 	r.GET("/api/app_server/reward_list", _App_RewardList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/recommend_reward_list", _App_RecommendRewardList0_HTTP_Handler(srv))
@@ -76,6 +75,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/app_server/withdraw_list", _App_WithdrawList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/recommend_list", _App_RecommendList0_HTTP_Handler(srv))
 	r.POST("/api/app_server/withdraw", _App_Withdraw0_HTTP_Handler(srv))
+	r.GET("/api/admin_dhb/deposit", _App_Deposit0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/reward_list", _App_AdminRewardList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/user_list", _App_AdminUserList0_HTTP_Handler(srv))
 	r.GET("/api/admin_dhb/location_list", _App_AdminLocationList0_HTTP_Handler(srv))
@@ -108,25 +108,6 @@ func _App_EthAuthorize0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) e
 			return err
 		}
 		reply := out.(*EthAuthorizeReply)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _App_Deposit0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in DepositRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAppDeposit)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.Deposit(ctx, req.(*DepositRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*DepositReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -263,6 +244,25 @@ func _App_Withdraw0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error
 			return err
 		}
 		reply := out.(*WithdrawReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_Deposit0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DepositRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppDeposit)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.Deposit(ctx, req.(*DepositRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DepositReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -688,7 +688,7 @@ func (c *AppHTTPClientImpl) AdminWithdrawList(ctx context.Context, in *AdminWith
 
 func (c *AppHTTPClientImpl) Deposit(ctx context.Context, in *DepositRequest, opts ...http.CallOption) (*DepositReply, error) {
 	var out DepositReply
-	pattern := "/api/app_server/deposit"
+	pattern := "/api/admin_dhb/deposit"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppDeposit))
 	opts = append(opts, http.PathTemplate(pattern))
