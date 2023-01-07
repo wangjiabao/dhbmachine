@@ -461,22 +461,20 @@ func (ur *UserRecommendRepo) GetUserRecommendByUserId(ctx context.Context, userI
 }
 
 // GetUserRecommendByCode .
-func (ur *UserRecommendRepo) GetUserRecommendByCode(ctx context.Context, b *biz.Pagination, code string) ([]*biz.UserRecommend, error, int64) {
+func (ur *UserRecommendRepo) GetUserRecommendByCode(ctx context.Context, code string) ([]*biz.UserRecommend, error) {
 	var (
 		userRecommends []*UserRecommend
-		count          int64
 	)
 	res := make([]*biz.UserRecommend, 0)
 
 	instance := ur.data.db.Table("user_recommend").Where("recommend_code=?", code)
 
-	instance = instance.Count(&count)
-	if err := instance.Scopes(Paginate(b.PageNum, b.PageSize)).Table("user_recommend").Find(&userRecommends).Error; err != nil {
+	if err := instance.Find(&userRecommends).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return res, errors.NotFound("USER_RECOMMEND_NOT_FOUND", "user recommend not found"), 0
+			return res, errors.NotFound("USER_RECOMMEND_NOT_FOUND", "user recommend not found")
 		}
 
-		return nil, errors.New(500, "USER RECOMMEND ERROR", err.Error()), 0
+		return nil, errors.New(500, "USER RECOMMEND ERROR", err.Error())
 	}
 
 	for _, userRecommend := range userRecommends {
@@ -487,7 +485,7 @@ func (ur *UserRecommendRepo) GetUserRecommendByCode(ctx context.Context, b *biz.
 		})
 	}
 
-	return res, nil, count
+	return res, nil
 }
 
 // GetUserRecommendLikeCode .

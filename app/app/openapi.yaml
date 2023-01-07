@@ -236,11 +236,6 @@ paths:
                   schema:
                     type: integer
                     format: int64
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
             responses:
                 "200":
                     description: OK
@@ -665,12 +660,12 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/AdminUserRecommendReply_List'
-                count:
-                    type: integer
-                    format: int64
         AdminUserRecommendReply_List:
             type: object
             properties:
+                userId:
+                    type: integer
+                    format: int64
                 address:
                     type: string
                 id:

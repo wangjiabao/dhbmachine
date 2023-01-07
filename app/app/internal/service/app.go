@@ -196,6 +196,7 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			//	continue
 			//}
 
+			// todo
 			if "1000000000000000000" == vDepositUsdtResult.Value {
 
 			} else if "2000000000000000000" == vDepositUsdtResult.Value {
@@ -492,6 +493,7 @@ func (a *AppService) AdminWithdrawEth(ctx context.Context, req *v1.AdminWithdraw
 			continue
 		}
 
+		// todo
 		withDrawAmount := strconv.FormatInt(v.Amount, 10) + "000000" // 补八个0.系统基础1是10个0
 
 		for i := 0; i < 3; i++ {

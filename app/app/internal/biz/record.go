@@ -218,6 +218,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 			}
 		}
 
+		// todo
 		if "1000000000000000000" == v.Amount {
 			locationCurrentLevel = 1
 			locationCurrentMax = 5000000000000

@@ -141,7 +141,7 @@ type UserBalanceRepo interface {
 type UserRecommendRepo interface {
 	GetUserRecommendByUserId(ctx context.Context, userId int64) (*UserRecommend, error)
 	CreateUserRecommend(ctx context.Context, u *User, recommendUser *UserRecommend) (*UserRecommend, error)
-	GetUserRecommendByCode(ctx context.Context, b *Pagination, code string) ([]*UserRecommend, error, int64)
+	GetUserRecommendByCode(ctx context.Context, code string) ([]*UserRecommend, error)
 	GetUserRecommendLikeCode(ctx context.Context, code string) ([]*UserRecommend, error)
 }
 
@@ -864,7 +864,6 @@ func (uuc *UserUseCase) AdminRecommendList(ctx context.Context, req *v1.AdminUse
 		userIdsMap     map[int64]int64
 		userIds        []int64
 		users          map[int64]*User
-		count          int64
 		err            error
 	)
 
@@ -879,15 +878,10 @@ func (uuc *UserUseCase) AdminRecommendList(ctx context.Context, req *v1.AdminUse
 			return res, nil
 		}
 
-		userRecommends, err, count = uuc.urRepo.GetUserRecommendByCode(ctx, &Pagination{
-			PageNum:  int(req.Page),
-			PageSize: 10,
-		}, userRecommend.RecommendCode+"D"+strconv.FormatInt(userRecommend.UserId, 10))
+		userRecommends, err = uuc.urRepo.GetUserRecommendByCode(ctx, userRecommend.RecommendCode+"D"+strconv.FormatInt(userRecommend.UserId, 10))
 		if nil != err {
 			return res, nil
 		}
-
-		res.Count = count
 	}
 
 	userIdsMap = make(map[int64]int64, 0)
@@ -911,6 +905,7 @@ func (uuc *UserUseCase) AdminRecommendList(ctx context.Context, req *v1.AdminUse
 		res.Users = append(res.Users, &v1.AdminUserRecommendReply_List{
 			Address:   users[v.UserId].Address,
 			Id:        v.ID,
+			UserId:    v.UserId,
 			CreatedAt: v.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}

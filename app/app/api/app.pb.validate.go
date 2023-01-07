@@ -3972,8 +3972,6 @@ func (m *AdminUserRecommendRequest) validate(all bool) error {
 
 	// no validation rules for UserId
 
-	// no validation rules for Page
-
 	if len(errors) > 0 {
 		return AdminUserRecommendRequestMultiError(errors)
 	}
@@ -4109,8 +4107,6 @@ func (m *AdminUserRecommendReply) validate(all bool) error {
 		}
 
 	}
-
-	// no validation rules for Count
 
 	if len(errors) > 0 {
 		return AdminUserRecommendReplyMultiError(errors)
@@ -6157,6 +6153,8 @@ func (m *AdminUserRecommendReply_List) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for UserId
 
 	// no validation rules for Address
 
