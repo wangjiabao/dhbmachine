@@ -40,6 +40,7 @@ type GlobalLock struct {
 type RecordUseCase struct {
 	ethUserRecordRepo             EthUserRecordRepo
 	userRecommendRepo             UserRecommendRepo
+	configRepo                    ConfigRepo
 	locationRepo                  LocationRepo
 	userBalanceRepo               UserBalanceRepo
 	userInfoRepo                  UserInfoRepo
@@ -79,12 +80,14 @@ func NewRecordUseCase(
 	userBalanceRepo UserBalanceRepo,
 	userRecommendRepo UserRecommendRepo,
 	userInfoRepo UserInfoRepo,
+	configRepo ConfigRepo,
 	userCurrentMonthRecommendRepo UserCurrentMonthRecommendRepo,
 	tx Transaction,
 	logger log.Logger) *RecordUseCase {
 	return &RecordUseCase{
 		ethUserRecordRepo:             ethUserRecordRepo,
 		locationRepo:                  locationRepo,
+		configRepo:                    configRepo,
 		userRecommendRepo:             userRecommendRepo,
 		userBalanceRepo:               userBalanceRepo,
 		userCurrentMonthRecommendRepo: userCurrentMonthRecommendRepo,
@@ -99,7 +102,42 @@ func (ruc *RecordUseCase) GetEthUserRecordByTxHash(ctx context.Context, txHash .
 }
 
 func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord ...*EthUserRecord) (bool, error) {
-	for k, v := range ethUserRecord {
+
+	var (
+		configs           []*Config
+		recommendNeed     int64
+		recommendNeedVip1 int64
+		recommendNeedVip2 int64
+		recommendNeedVip3 int64
+		recommendNeedVip4 int64
+		recommendNeedVip5 int64
+		timeAgain         int64
+	)
+	// 配置
+	configs, _ = ruc.configRepo.GetConfigByKeys(ctx, "recommend_need", "recommend_need_vip1", "recommend_need_vip2",
+		"recommend_need_vip3", "recommend_need_vip4", "recommend_need_vip5", "time_again")
+	if nil != configs {
+		for _, vConfig := range configs {
+			if "recommend_need" == vConfig.KeyName {
+				recommendNeed, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			} else if "recommend_need_vip1" == vConfig.KeyName {
+				recommendNeedVip1, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			} else if "recommend_need_vip2" == vConfig.KeyName {
+				recommendNeedVip2, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			} else if "recommend_need_vip3" == vConfig.KeyName {
+				recommendNeedVip3, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			} else if "recommend_need_vip4" == vConfig.KeyName {
+				recommendNeedVip4, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			} else if "recommend_need_vip5" == vConfig.KeyName {
+				recommendNeedVip5, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			} else if "time_again" == vConfig.KeyName {
+				timeAgain, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+		}
+	}
+	fmt.Println(recommendNeed, recommendNeedVip1, recommendNeedVip2, recommendNeedVip3, recommendNeedVip4, recommendNeedVip5, timeAgain)
+
+	for _, v := range ethUserRecord {
 		var (
 			lastLocation                    *Location
 			myLocations                     []*Location
@@ -121,9 +159,9 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 			err                             error
 		)
 
-		if "DHB" == v.CoinType {
-			continue
-		}
+		//if "DHB" == v.CoinType {
+		//	continue
+		//}
 
 		// 获取当前用户的占位信息，已经有运行中的跳过
 		myLocations, err = ruc.locationRepo.GetLocationsByUserId(ctx, v.UserId)
@@ -217,7 +255,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 
 		myLastStopLocation, err = ruc.locationRepo.GetMyStopLocationLast(ctx, v.UserId)
 		now := time.Now().UTC().Add(8 * time.Hour)
-		if nil != myLastStopLocation && now.Before(myLastStopLocation.StopDate.Add(24*time.Hour)) {
+		if nil != myLastStopLocation && now.Before(myLastStopLocation.StopDate.Add(time.Duration(timeAgain)*time.Minute)) {
 			locationCurrent = myLastStopLocation.Current - myLastStopLocation.CurrentMax // 补上
 		}
 
@@ -331,7 +369,7 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 					tmpStatus := myUserRecommendUserLocationLast.Status // 现在还在运行中
 					tmpCurrent := myUserRecommendUserLocationLast.Current
 
-					tmpBalanceAmount := currentValue / 100 * 20 // 记录下一次
+					tmpBalanceAmount := currentValue / 100 * recommendNeed // 记录下一次
 					myUserRecommendUserLocationLast.Status = "running"
 					myUserRecommendUserLocationLast.Current += tmpBalanceAmount
 					if myUserRecommendUserLocationLast.Current >= myUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
@@ -365,15 +403,15 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 				if nil != myUserRecommendUserLocationLast {
 					var tmpMyRecommendAmount int64
 					if 5 == myUserRecommendUserInfo.Vip { // 会员等级分红
-						tmpMyRecommendAmount = currentValue / 100 * 20
+						tmpMyRecommendAmount = currentValue / 100 * recommendNeedVip5
 					} else if 4 == myUserRecommendUserInfo.Vip {
-						tmpMyRecommendAmount = currentValue / 100 * 16
+						tmpMyRecommendAmount = currentValue / 100 * recommendNeedVip4
 					} else if 3 == myUserRecommendUserInfo.Vip {
-						tmpMyRecommendAmount = currentValue / 100 * 12
+						tmpMyRecommendAmount = currentValue / 100 * recommendNeedVip3
 					} else if 2 == myUserRecommendUserInfo.Vip {
-						tmpMyRecommendAmount = currentValue / 100 * 8
+						tmpMyRecommendAmount = currentValue / 100 * recommendNeedVip2
 					} else if 1 == myUserRecommendUserInfo.Vip {
-						tmpMyRecommendAmount = currentValue / 100 * 4
+						tmpMyRecommendAmount = currentValue / 100 * recommendNeedVip1
 					}
 					if 0 < tmpMyRecommendAmount { // 扣除推荐人分红
 						tmpStatus := myUserRecommendUserLocationLast.Status // 现在还在运行中
@@ -440,24 +478,24 @@ func (ruc *RecordUseCase) EthUserRecordHandle(ctx context.Context, ethUserRecord
 				return err
 			}
 
-			dhbAmount, _ := strconv.ParseInt(ethUserRecord[k+1].Amount, 10, 64)
-			dhbAmount /= 100000000                                                             // 转换为系统精度
-			_, err = ruc.userBalanceRepo.DepositDhb(ctx, ethUserRecord[k+1].UserId, dhbAmount) // 充值
-			if nil != err {
-				return err
-			}
-
-			_, err = ruc.ethUserRecordRepo.CreateEthUserRecordListByHash(ctx, &EthUserRecord{
-				Hash:     ethUserRecord[k+1].Hash,
-				UserId:   ethUserRecord[k+1].UserId,
-				Status:   ethUserRecord[k+1].Status,
-				Type:     ethUserRecord[k+1].Type,
-				Amount:   ethUserRecord[k+1].Amount,
-				CoinType: ethUserRecord[k+1].CoinType,
-			})
-			if nil != err {
-				return err
-			}
+			//dhbAmount, _ := strconv.ParseInt(ethUserRecord[k+1].Amount, 10, 64)
+			//dhbAmount /= 100000000                                                             // 转换为系统精度
+			//_, err = ruc.userBalanceRepo.DepositDhb(ctx, ethUserRecord[k+1].UserId, dhbAmount) // 充值
+			//if nil != err {
+			//	return err
+			//}
+			//
+			//_, err = ruc.ethUserRecordRepo.CreateEthUserRecordListByHash(ctx, &EthUserRecord{
+			//	Hash:     ethUserRecord[k+1].Hash,
+			//	UserId:   ethUserRecord[k+1].UserId,
+			//	Status:   ethUserRecord[k+1].Status,
+			//	Type:     ethUserRecord[k+1].Type,
+			//	Amount:   ethUserRecord[k+1].Amount,
+			//	CoinType: ethUserRecord[k+1].CoinType,
+			//})
+			//if nil != err {
+			//	return err
+			//}
 
 			return nil
 		}); nil != err {
