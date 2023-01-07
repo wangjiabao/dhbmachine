@@ -181,7 +181,7 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 			//
 			//	if "10000000000000000" == vDepositUsdtResult.Value {
 			//		tmpPass = true
-			//	} else if "20000000000000000" == vDepositUsdtResult.Value {
+			//	} else if "30000000000000000" == vDepositUsdtResult.Value {
 			//		tmpPass = true
 			//	} else if "50000000000000000" == vDepositUsdtResult.Value {
 			//		tmpPass = true
@@ -198,7 +198,7 @@ func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.D
 
 			if "100000000000000000000" == vDepositUsdtResult.Value {
 
-			} else if "200000000000000000000" == vDepositUsdtResult.Value {
+			} else if "300000000000000000000" == vDepositUsdtResult.Value {
 
 			} else if "500000000000000000000" == vDepositUsdtResult.Value {
 
