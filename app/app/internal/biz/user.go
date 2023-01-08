@@ -136,6 +136,7 @@ type UserBalanceRepo interface {
 	GetUserWithdrawUsdtTotal(ctx context.Context) (int64, error)
 	GetUserRewardUsdtTotal(ctx context.Context) (int64, error)
 	GetSystemRewardUsdtTotal(ctx context.Context) (int64, error)
+	UpdateWithdrawAmount(ctx context.Context, id int64, status string, amount int64) (*Withdraw, error)
 }
 
 type UserRecommendRepo interface {
@@ -1511,7 +1512,7 @@ func (uuc *UserUseCase) AdminWithdraw(ctx context.Context, req *v1.AdminWithdraw
 				return err
 			}
 
-			_, err = uuc.ubRepo.UpdateWithdraw(ctx, withdraw.ID, "rewarded")
+			_, err = uuc.ubRepo.UpdateWithdrawAmount(ctx, withdraw.ID, "rewarded", withdrawAmount)
 			if nil != err {
 				return err
 			}
