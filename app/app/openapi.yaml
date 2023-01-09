@@ -6,77 +6,6 @@ info:
     title: App API
     version: 0.0.1
 paths:
-    /api/admin_dhb/all:
-        get:
-            tags:
-                - App
-            operationId: App_AdminAll
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminAllReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /api/admin_dhb/config:
-        get:
-            tags:
-                - App
-            operationId: App_AdminConfig
-            parameters:
-                - name: userId
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminConfigReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /api/admin_dhb/config_update:
-        post:
-            tags:
-                - App
-            operationId: App_AdminConfigUpdate
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/AdminConfigUpdateRequest_SendBody'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminConfigUpdateReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/deposit:
         get:
             tags:
@@ -113,146 +42,34 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /api/admin_dhb/location_list:
-        get:
-            tags:
-                - App
-            operationId: App_AdminLocationList
-            parameters:
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-                - name: address
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminLocationListReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /api/admin_dhb/month_recommend:
-        get:
-            tags:
-                - App
-            operationId: App_AdminMonthRecommend
-            parameters:
-                - name: address
-                  in: query
-                  schema:
-                    type: string
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminMonthRecommendReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /api/admin_dhb/reward_list:
-        get:
-            tags:
-                - App
-            operationId: App_AdminRewardList
-            parameters:
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-                - name: address
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminRewardListReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /api/admin_dhb/user_list:
-        get:
-            tags:
-                - App
-            operationId: App_AdminUserList
-            parameters:
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-                - name: address
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminUserListReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /api/admin_dhb/user_recommend:
-        get:
-            tags:
-                - App
-            operationId: App_AdminUserRecommend
-            parameters:
-                - name: userId
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminUserRecommendReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
     /api/admin_dhb/withdraw:
         get:
             tags:
                 - App
+            description: |-
+                rpc AdminRewardList (AdminRewardListRequest) returns (AdminRewardListReply) {
+                		option (google.api.http) = {
+                			get: "/api/admin_dhb/reward_list"
+                		};
+                	};
+
+                	rpc AdminUserList (AdminUserListRequest) returns (AdminUserListReply) {
+                		option (google.api.http) = {
+                			get: "/api/admin_dhb/user_list"
+                		};
+                	};
+
+                	rpc AdminLocationList (AdminLocationListRequest) returns (AdminLocationListReply) {
+                		option (google.api.http) = {
+                			get: "/api/admin_dhb/location_list"
+                		};
+                	};
+
+                	rpc AdminWithdrawList (AdminWithdrawListRequest) returns (AdminWithdrawListReply) {
+                		option (google.api.http) = {
+                			get: "/api/admin_dhb/withdraw_list"
+                		};
+                	};
             operationId: App_AdminWithdraw
             responses:
                 "200":
@@ -279,34 +96,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/AdminWithdrawEthReply'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /api/admin_dhb/withdraw_list:
-        get:
-            tags:
-                - App
-            operationId: App_AdminWithdrawList
-            parameters:
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int64
-                - name: address
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/AdminWithdrawListReply'
                 default:
                     description: Default error response
                     content:
@@ -486,224 +275,12 @@ paths:
                                 $ref: '#/components/schemas/Status'
 components:
     schemas:
-        AdminAllReply:
-            type: object
-            properties:
-                todayTotalUser:
-                    type: integer
-                    format: int64
-                totalUser:
-                    type: integer
-                    format: int64
-                allBalance:
-                    type: string
-                todayLocation:
-                    type: string
-                allLocation:
-                    type: string
-                todayWithdraw:
-                    type: string
-                allWithdraw:
-                    type: string
-                allReward:
-                    type: string
-                allSystemRewardAndFee:
-                    type: string
-        AdminConfigReply:
-            type: object
-            properties:
-                config:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/AdminConfigReply_List'
-                count:
-                    type: integer
-                    format: int64
-        AdminConfigReply_List:
-            type: object
-            properties:
-                id:
-                    type: integer
-                    format: int64
-                name:
-                    type: string
-                value:
-                    type: string
-        AdminConfigUpdateReply:
-            type: object
-            properties: {}
-        AdminConfigUpdateRequest_SendBody:
-            type: object
-            properties:
-                id:
-                    type: integer
-                    format: int64
-                value:
-                    type: string
         AdminFeeReply:
             type: object
             properties: {}
-        AdminLocationListReply:
-            type: object
-            properties:
-                locations:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/AdminLocationListReply_LocationList'
-                count:
-                    type: integer
-                    format: int64
-        AdminLocationListReply_LocationList:
-            type: object
-            properties:
-                createdAt:
-                    type: string
-                address:
-                    type: string
-                row:
-                    type: integer
-                    format: int64
-                col:
-                    type: integer
-                    format: int64
-                status:
-                    type: string
-                currentLevel:
-                    type: integer
-                    format: int64
-                current:
-                    type: string
-                currentMax:
-                    type: string
-        AdminMonthRecommendReply:
-            type: object
-            properties:
-                users:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/AdminMonthRecommendReply_List'
-                count:
-                    type: integer
-                    format: int64
-        AdminMonthRecommendReply_List:
-            type: object
-            properties:
-                address:
-                    type: string
-                recommendAddress:
-                    type: string
-                id:
-                    type: integer
-                    format: int64
-                createdAt:
-                    type: string
-        AdminRewardListReply:
-            type: object
-            properties:
-                rewards:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/AdminRewardListReply_List'
-                count:
-                    type: integer
-                    format: int64
-        AdminRewardListReply_List:
-            type: object
-            properties:
-                createdAt:
-                    type: string
-                amount:
-                    type: string
-                type:
-                    type: string
-                address:
-                    type: string
-                reason:
-                    type: string
-        AdminUserListReply:
-            type: object
-            properties:
-                users:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/AdminUserListReply_UserList'
-                count:
-                    type: integer
-                    format: int64
-        AdminUserListReply_UserList:
-            type: object
-            properties:
-                userId:
-                    type: integer
-                    format: int64
-                createdAt:
-                    type: string
-                address:
-                    type: string
-                balanceUsdt:
-                    type: string
-                balanceDhb:
-                    type: string
-                vip:
-                    type: integer
-                    format: int64
-                monthRecommend:
-                    type: integer
-                    format: int64
-                historyRecommend:
-                    type: integer
-                    format: int64
-        AdminUserRecommendReply:
-            type: object
-            properties:
-                users:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/AdminUserRecommendReply_List'
-        AdminUserRecommendReply_List:
-            type: object
-            properties:
-                userId:
-                    type: integer
-                    format: int64
-                address:
-                    type: string
-                id:
-                    type: integer
-                    format: int64
-                createdAt:
-                    type: string
         AdminWithdrawEthReply:
             type: object
             properties: {}
-        AdminWithdrawListReply:
-            type: object
-            properties:
-                withdraw:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/AdminWithdrawListReply_List'
-                count:
-                    type: integer
-                    format: int64
-        AdminWithdrawListReply_List:
-            type: object
-            properties:
-                address:
-                    type: string
-                id:
-                    type: integer
-                    format: int64
-                createdAt:
-                    type: string
-                amount:
-                    type: string
-                relAmount:
-                    type: string
-                type:
-                    type: string
-                status:
-                    type: string
         AdminWithdrawReply:
             type: object
             properties: {}

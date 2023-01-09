@@ -66,31 +66,31 @@ service App {
 			get: "/api/admin_dhb/deposit"
 		};
 	};
-
-	rpc AdminRewardList (AdminRewardListRequest) returns (AdminRewardListReply) {
-		option (google.api.http) = {
-			get: "/api/admin_dhb/reward_list"
-		};
-	};
-
-	rpc AdminUserList (AdminUserListRequest) returns (AdminUserListReply) {
-		option (google.api.http) = {
-			get: "/api/admin_dhb/user_list"
-		};
-	};
-
-	rpc AdminLocationList (AdminLocationListRequest) returns (AdminLocationListReply) {
-		option (google.api.http) = {
-			get: "/api/admin_dhb/location_list"
-		};
-	};
-
-	rpc AdminWithdrawList (AdminWithdrawListRequest) returns (AdminWithdrawListReply) {
-		option (google.api.http) = {
-			get: "/api/admin_dhb/withdraw_list"
-		};
-	};
-
+//
+//	rpc AdminRewardList (AdminRewardListRequest) returns (AdminRewardListReply) {
+//		option (google.api.http) = {
+//			get: "/api/admin_dhb/reward_list"
+//		};
+//	};
+//
+//	rpc AdminUserList (AdminUserListRequest) returns (AdminUserListReply) {
+//		option (google.api.http) = {
+//			get: "/api/admin_dhb/user_list"
+//		};
+//	};
+//
+//	rpc AdminLocationList (AdminLocationListRequest) returns (AdminLocationListReply) {
+//		option (google.api.http) = {
+//			get: "/api/admin_dhb/location_list"
+//		};
+//	};
+//
+//	rpc AdminWithdrawList (AdminWithdrawListRequest) returns (AdminWithdrawListReply) {
+//		option (google.api.http) = {
+//			get: "/api/admin_dhb/withdraw_list"
+//		};
+//	};
+//
 	rpc AdminWithdraw (AdminWithdrawRequest) returns (AdminWithdrawReply) {
 		option (google.api.http) = {
 			get: "/api/admin_dhb/withdraw"
@@ -108,37 +108,37 @@ service App {
 			get: "/api/admin_dhb/fee"
 		};
 	};
-
-	rpc AdminAll (AdminAllRequest) returns (AdminAllReply) {
-		option (google.api.http) = {
-			get: "/api/admin_dhb/all"
-		};
-	};
-
-	rpc AdminUserRecommend (AdminUserRecommendRequest) returns (AdminUserRecommendReply) {
-		option (google.api.http) = {
-			get: "/api/admin_dhb/user_recommend"
-		};
-	};
-
-	rpc AdminMonthRecommend (AdminMonthRecommendRequest) returns (AdminMonthRecommendReply) {
-		option (google.api.http) = {
-			get: "/api/admin_dhb/month_recommend"
-		};
-	};
-
-	rpc AdminConfig (AdminConfigRequest) returns (AdminConfigReply) {
-		option (google.api.http) = {
-			get: "/api/admin_dhb/config"
-		};
-	};
-
-	rpc AdminConfigUpdate (AdminConfigUpdateRequest) returns (AdminConfigUpdateReply) {
-		option (google.api.http) = {
-			post: "/api/admin_dhb/config_update"
-			body: "send_body"
-		};
-	};
+//
+//	rpc AdminAll (AdminAllRequest) returns (AdminAllReply) {
+//		option (google.api.http) = {
+//			get: "/api/admin_dhb/all"
+//		};
+//	};
+//
+//	rpc AdminUserRecommend (AdminUserRecommendRequest) returns (AdminUserRecommendReply) {
+//		option (google.api.http) = {
+//			get: "/api/admin_dhb/user_recommend"
+//		};
+//	};
+//
+//	rpc AdminMonthRecommend (AdminMonthRecommendRequest) returns (AdminMonthRecommendReply) {
+//		option (google.api.http) = {
+//			get: "/api/admin_dhb/month_recommend"
+//		};
+//	};
+//
+//	rpc AdminConfig (AdminConfigRequest) returns (AdminConfigReply) {
+//		option (google.api.http) = {
+//			get: "/api/admin_dhb/config"
+//		};
+//	};
+//
+//	rpc AdminConfigUpdate (AdminConfigUpdateRequest) returns (AdminConfigUpdateReply) {
+//		option (google.api.http) = {
+//			post: "/api/admin_dhb/config_update"
+//			body: "send_body"
+//		};
+//	};
 
 }
 

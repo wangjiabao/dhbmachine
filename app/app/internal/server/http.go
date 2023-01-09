@@ -50,19 +50,19 @@ func NewHTTPServer(c *conf.Server, app *service.AppService, logger log.Logger) *
 func NewWhiteListMatcher() selector.MatchFunc {
 	whiteList := make(map[string]struct{})
 	whiteList["/api.App/EthAuthorize"] = struct{}{}
-	whiteList["/api.App/Deposit"] = struct{}{}
-	whiteList["/api.App/AdminLocationList"] = struct{}{}
-	whiteList["/api.App/AdminRewardList"] = struct{}{}
-	whiteList["/api.App/AdminUserList"] = struct{}{}
-	whiteList["/api.App/AdminWithdrawList"] = struct{}{}
-	whiteList["/api.App/AdminWithdraw"] = struct{}{}
-	whiteList["/api.App/AdminWithdrawEth"] = struct{}{}
-	whiteList["/api.App/AdminFee"] = struct{}{}
-	whiteList["/api.App/AdminAll"] = struct{}{}
-	whiteList["/api.App/AdminConfigUpdate"] = struct{}{}
-	whiteList["/api.App/AdminConfig"] = struct{}{}
-	whiteList["/api.App/AdminUserRecommend"] = struct{}{}
-	whiteList["/api.App/AdminMonthRecommend"] = struct{}{}
+	//whiteList["/api.App/Deposit"] = struct{}{}
+	//whiteList["/api.App/AdminLocationList"] = struct{}{}
+	//whiteList["/api.App/AdminRewardList"] = struct{}{}
+	//whiteList["/api.App/AdminUserList"] = struct{}{}
+	//whiteList["/api.App/AdminWithdrawList"] = struct{}{}
+	//whiteList["/api.App/AdminWithdraw"] = struct{}{}
+	//whiteList["/api.App/AdminWithdrawEth"] = struct{}{}
+	//whiteList["/api.App/AdminFee"] = struct{}{}
+	//whiteList["/api.App/AdminAll"] = struct{}{}
+	//whiteList["/api.App/AdminConfigUpdate"] = struct{}{}
+	//whiteList["/api.App/AdminConfig"] = struct{}{}
+	//whiteList["/api.App/AdminUserRecommend"] = struct{}{}
+	//whiteList["/api.App/AdminMonthRecommend"] = struct{}{}
 	return func(ctx context.Context, operation string) bool {
 		if _, ok := whiteList[operation]; ok {
 			return false
