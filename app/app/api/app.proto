@@ -193,6 +193,9 @@ message UserInfoReply {
 	int64 recommendNumAll = 24;
 	int64 recommendTeamAll = 25;
 	string amountB = 27;
+	int64 locationCount = 28;
+	int64 undo = 29;
+	string contract = 30;
 }
 
 message RewardListRequest {

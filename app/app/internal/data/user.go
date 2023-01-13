@@ -13,6 +13,7 @@ import (
 type User struct {
 	ID        int64     `gorm:"primarykey;type:int"`
 	Address   string    `gorm:"type:varchar(100)"`
+	Undo      int64     `gorm:"type:int;not null"`
 	CreatedAt time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt time.Time `gorm:"type:datetime;not null"`
 }
@@ -262,6 +263,7 @@ func (u *UserRepo) GetUserById(ctx context.Context, Id int64) (*biz.User, error)
 	return &biz.User{
 		ID:      user.ID,
 		Address: user.Address,
+		Undo:    user.Undo,
 	}, nil
 }
 

@@ -15,6 +15,7 @@ import (
 type User struct {
 	ID        int64
 	Address   string
+	Undo      int64
 	CreatedAt time.Time
 }
 
@@ -288,6 +289,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		myLastStopLocation         *Location
 		myLastLocationCurrent      int64
 		hasRunningLocation         bool
+		locationCount              int64
 		level1Dhb                  string
 		level2Dhb                  string
 		level3Dhb                  string
@@ -321,6 +323,8 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 		}
 	}
+
+	locationCount = int64(len(locations))
 
 	now := time.Now().UTC().Add(8 * time.Hour)
 	myLastStopLocation, err = uuc.locationRepo.GetMyStopLocationLast(ctx, myUser.ID) // 冻结
@@ -439,13 +443,16 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		Level1Dhb:                level1Dhb,
 		Level2Dhb:                level2Dhb,
 		Level3Dhb:                level3Dhb,
+		LocationCount:            locationCount,
 		Usdt:                     "0x55d398326f99059fF775485246999027B3197955",
 		Dhb:                      "0xb7864be857e00796e6f79e057b3ef1032cbe4a06",
 		Account:                  "0x636F2deAAb4C9A8F3c808D23F16f456009C4e9Fd",
+		Contract:                 "0xA497605d07da3B94fFAA6667aF702adacd02B843",
 		//Usdt:                     "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd",
 		//Dhb:                      "0x96BD81715c69eE013405B4005Ba97eA1f420fd87",
 		//Account:                  "0xe865f2e5ff04b8b7952d1c0d9163a91f313b158f",
 		AmountB: fmt.Sprintf("%.2f", float64(myLastLocationCurrent)/float64(10000000000)),
+		Undo:    myUser.Undo,
 	}, nil
 }
 
@@ -587,6 +594,7 @@ func (uuc *UserUseCase) WithdrawList(ctx context.Context, user *User) (*v1.Withd
 func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, user *User) (*v1.WithdrawReply, error) {
 	var (
 		err         error
+		userUndo    *User
 		userBalance *UserBalance
 	)
 
@@ -594,6 +602,14 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		return &v1.WithdrawReply{
 			Status: "fail",
 		}, nil
+	}
+
+	userUndo, err = uuc.repo.GetUserById(ctx, user.ID)
+	if nil == userUndo {
+		return nil, err
+	}
+	if 0 < userUndo.Undo {
+		return nil, errors.New(500, "USER_WITHDRAW_ERROR", "账户锁定")
 	}
 
 	userBalance, err = uuc.ubRepo.GetUserBalance(ctx, user.ID)
@@ -646,7 +662,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 
 		return nil
 	}); nil != err {
-		return nil, err
+		return nil, errors.New(500, "USER_WITHDRAW_ERROR", "提现失败，余额不足")
 	}
 
 	return &v1.WithdrawReply{

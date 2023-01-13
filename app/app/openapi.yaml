@@ -450,6 +450,14 @@ components:
                     format: int64
                 amountB:
                     type: string
+                locationCount:
+                    type: integer
+                    format: int64
+                undo:
+                    type: integer
+                    format: int64
+                contract:
+                    type: string
         WithdrawListReply:
             type: object
             properties:
