@@ -19,6 +19,13 @@ type User struct {
 	CreatedAt time.Time
 }
 
+type UserRecommendArea struct {
+	ID            int64
+	RecommendCode string
+	Num           int64
+	CreatedAt     time.Time
+}
+
 type UserInfo struct {
 	ID               int64
 	UserId           int64
@@ -145,6 +152,8 @@ type UserRecommendRepo interface {
 	CreateUserRecommend(ctx context.Context, u *User, recommendUser *UserRecommend) (*UserRecommend, error)
 	GetUserRecommendByCode(ctx context.Context, code string) ([]*UserRecommend, error)
 	GetUserRecommendLikeCode(ctx context.Context, code string) ([]*UserRecommend, error)
+	CreateUserRecommendArea(ctx context.Context, u *User, recommendUser *UserRecommend) (bool, error)
+	GetUserRecommendLowArea(ctx context.Context, code string) ([]*UserRecommendArea, error)
 }
 
 type UserCurrentMonthRecommendRepo interface {
@@ -243,6 +252,11 @@ func (uuc *UserUseCase) GetExistUserByAddressOrCreate(ctx context.Context, u *Us
 				return err
 			}
 
+			_, err = uuc.urRepo.CreateUserRecommendArea(ctx, user, recommendUser) // 创建用户推荐链路信息
+			if err != nil {
+				return err
+			}
+
 			userBalance, err = uuc.ubRepo.CreateUserBalance(ctx, user) // 创建余额信息
 			if err != nil {
 				return err
@@ -293,6 +307,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		level1Dhb                  string
 		level2Dhb                  string
 		level3Dhb                  string
+		userRecommendArea          []*UserRecommendArea
+		userAreas                  map[int64]int64
+		areaAmount                 int64
 		err                        error
 	)
 
@@ -419,6 +436,33 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			} else if "level3Dhb" == vConfig.KeyName {
 				level3Dhb = vConfig.Value
 			}
+		}
+	}
+
+	// 区信息
+	userAreas = make(map[int64]int64, 0)
+	userRecommendArea, err = uuc.urRepo.GetUserRecommendLowArea(ctx, myCode)
+	if nil != userRecommendArea {
+		for _, vUserRecommendArea := range userRecommendArea {
+			tmpCodes := strings.Split(vUserRecommendArea.RecommendCode, "D")
+			for _, vTmpCode := range tmpCodes {
+				tmpUserId, _ := strconv.ParseInt(vTmpCode, 10, 64)
+				if tmpUserId > 0 {
+					userAreas[tmpUserId] = tmpUserId
+				}
+			}
+		}
+	}
+	// 获取小区内入单信息
+	if 0 < len(userAreas) {
+		tmpUserAreasSlice := make([]int64, 0)
+		for _, vUserAreas := range userAreas {
+			tmpUserAreasSlice = append(tmpUserAreasSlice, vUserAreas)
+		}
+		var tmpAreaLocations []*Location
+		tmpAreaLocations, err = uuc.locationRepo.GetLocationByIds(ctx, tmpUserAreasSlice...)
+		for _, vTmpAreaLocations := range tmpAreaLocations {
+			areaAmount += vTmpAreaLocations.CurrentMax / 5
 		}
 	}
 

@@ -649,6 +649,8 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for Contract
 
+	// no validation rules for AreaAmount
+
 	if len(errors) > 0 {
 		return UserInfoReplyMultiError(errors)
 	}

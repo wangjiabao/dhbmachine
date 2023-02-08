@@ -7,6 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -97,6 +98,15 @@ type Reward struct {
 	LocationType     string    `gorm:"type:varchar(45);not null"`
 	CreatedAt        time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt        time.Time `gorm:"type:datetime;not null"`
+}
+
+type UserRecommendArea struct {
+	ID            int64     `gorm:"primarykey;type:int"`
+	RecommendCode string    `gorm:"type:varchar(10000);not null"`
+	Version       int64     `gorm:"type:int;not null"`
+	Num           int64     `gorm:"type:int;not null"`
+	CreatedAt     time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt     time.Time `gorm:"type:datetime;not null"`
 }
 
 type UserRepo struct {
@@ -391,6 +401,43 @@ func (u *UserRepo) GetUsers(ctx context.Context, b *biz.Pagination, address stri
 		})
 	}
 	return res, nil, count
+}
+
+// GetUserRecommendLowArea .
+func (ur *UserRecommendRepo) GetUserRecommendLowArea(ctx context.Context, code string) ([]*biz.UserRecommendArea, error) {
+
+	//var firstRecommendArea *UserRecommendArea
+	//if err := ur.data.db.Order("num desc").Table("user_recommend_area").First(&firstRecommendArea).Error; err != nil {
+	//	if errors.Is(err, gorm.ErrRecordNotFound) {
+	//		return nil, errors.New(500, "USER RECOMMEND NOT FOUND", err.Error())
+	//	}
+	//
+	//	return nil, errors.New(500, "USER RECOMMEND ERROR", err.Error())
+	//}
+
+	var myUserRecommendAreas []*UserRecommendArea
+	if err := ur.data.db.Where("recommend_code like ?", code+"%").Table("user_recommend_area").Find(&myUserRecommendAreas).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New(500, "USER RECOMMEND NOT FOUND", err.Error())
+		}
+
+		return nil, errors.New(500, "USER RECOMMEND ERROR", err.Error())
+	}
+
+	res := make([]*biz.UserRecommendArea, 0)
+	for _, v := range myUserRecommendAreas {
+		//if firstRecommendArea.ID == v.ID {
+		//	continue
+		//}
+
+		res = append(res, &biz.UserRecommendArea{
+			ID:            v.ID,
+			RecommendCode: v.RecommendCode,
+			Num:           v.Num,
+		})
+	}
+
+	return res, nil
 }
 
 // CreateUser .
@@ -1698,4 +1745,41 @@ func (uc *UserCurrentMonthRecommendRepo) GetUserLastMonthRecommend(ctx context.C
 		res = append(res, userCurrentMonthRecommend.UserId)
 	}
 	return res, nil
+}
+
+// CreateUserRecommendArea .
+func (ur *UserRecommendRepo) CreateUserRecommendArea(ctx context.Context, u *biz.User, recommendUser *biz.UserRecommend) (bool, error) {
+	var tmpRecommendCode string
+	if nil != recommendUser && 0 < recommendUser.UserId {
+		tmpRecommendCode = "D" + strconv.FormatInt(recommendUser.UserId, 10)
+		if "" != recommendUser.RecommendCode {
+			tmpRecommendCode = recommendUser.RecommendCode + tmpRecommendCode
+		}
+	}
+
+	var myUserRecommendArea UserRecommendArea
+	if err := ur.data.db.Where("recommend_code=?", tmpRecommendCode).Table("user_recommend_area").First(&myUserRecommendArea).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, errors.New(500, "USER RECOMMEND ERROR", err.Error())
+		}
+
+		// 业务上限制了错误的上一级未insert下一级优先insert的情况
+		var userRecommendArea UserRecommendArea
+		userRecommendArea.RecommendCode = tmpRecommendCode + "D" + strconv.FormatInt(u.ID, 10)
+		userRecommendArea.Num = myUserRecommendArea.Num + int64(len(strings.Split(userRecommendArea.RecommendCode, "D"))-1)
+		res := ur.data.DB(ctx).Table("user_recommend_area").Create(&userRecommendArea)
+		if res.Error != nil {
+			return false, errors.New(500, "CREATE_USER_RECOMMEND_AREA_ERROR", "用户推荐关系链路创建失败")
+		}
+
+	} else {
+		res := ur.data.DB(ctx).Table("user_recommend_area").
+			Where("id=? and version=?", myUserRecommendArea.ID, myUserRecommendArea.Version).
+			Updates(map[string]interface{}{"version": gorm.Expr("version + ?", 1), "num": gorm.Expr("num + ?", 1), "recommend_code": tmpRecommendCode + "D" + strconv.FormatInt(u.ID, 10)})
+		if 0 == res.RowsAffected || nil != res.Error {
+			return false, errors.New(500, "CREATE_USER_RECOMMEND_AREA_ERROR", "用户推荐关系链路修改失败")
+		}
+	}
+
+	return true, nil
 }

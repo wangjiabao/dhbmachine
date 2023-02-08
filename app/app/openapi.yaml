@@ -458,6 +458,8 @@ components:
                     format: int64
                 contract:
                     type: string
+                areaAmount:
+                    type: string
         WithdrawListReply:
             type: object
             properties:

@@ -196,6 +196,7 @@ message UserInfoReply {
 	int64 locationCount = 28;
 	int64 undo = 29;
 	string contract = 30;
+	string areaAmount = 31;
 }
 
 message RewardListRequest {
